@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Mail } from "lucide-react";
+import { signInWithGoogle } from "./actions";
 
 function GoogleIcon() {
   return (
@@ -57,13 +58,15 @@ export default function SignInPage() {
         </div>
 
         <div className="flex w-full flex-col gap-3">
-          <button
-            onClick={() => router.push("/onboarding")}
-            className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-background font-semibold transition-colors hover:bg-secondary"
-          >
-            <GoogleIcon />
-            Continuar com Google
-          </button>
+          <form action={signInWithGoogle} className="w-full">
+            <button
+              type="submit"
+              className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-background font-semibold transition-colors hover:bg-secondary"
+            >
+              <GoogleIcon />
+              Continuar com Google
+            </button>
+          </form>
 
           <div className="flex items-center gap-3 py-1 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />

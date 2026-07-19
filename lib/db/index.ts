@@ -6,8 +6,10 @@ import * as schema from "./schema";
 // O fallback (placeholder) só existe para o build/import não falhar enquanto a
 // variável ainda não estiver definida — qualquer query real precisa da
 // DATABASE_URL verdadeira (caso contrário a ligação falha em runtime).
+// Nota: usamos `|| ` (não `??`) de propósito, para que uma string vazia
+// (DATABASE_URL="" no .env) também caia no placeholder em vez de rebentar.
 const url =
-  process.env.DATABASE_URL ??
+  process.env.DATABASE_URL ||
   "postgresql://placeholder:placeholder@db.placeholder.neon.tech/placeholder?sslmode=require";
 
 const sql = neon(url);

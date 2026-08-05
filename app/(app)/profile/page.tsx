@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 import { MOCK_WARDROBE } from "@/lib/mock";
+import { signOutAction } from "./actions";
 
 const STYLE_TAGS = ["Casual", "Minimal", "Formal", "Desporto"];
 
@@ -118,6 +119,18 @@ export default function ProfilePage() {
           );
         })}
       </div>
+
+      {/* Terminar sessão — limpa a sessão e devolve ao ecrã inicial, para poder
+          entrar com outra conta. */}
+      <form action={signOutAction} className="mx-5 mt-6">
+        <button
+          type="submit"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 text-[13px] font-extrabold text-coral-deep shadow-soft transition-transform active:scale-[0.99]"
+        >
+          <LogOut className="h-4 w-4" />
+          Terminar sessão
+        </button>
+      </form>
     </main>
   );
 }

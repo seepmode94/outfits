@@ -4,18 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
+import { STYLE_OPTIONS } from "@/lib/styles";
 
 const GENDERS = ["Mulher", "Homem", "Não-binário", "Prefiro não dizer"];
-const STYLES = [
-  "Casual",
-  "Streetwear",
-  "Clássico",
-  "Formal",
-  "Desportivo",
-  "Boho",
-  "Minimalista",
-  "Vintage",
-];
 
 function Chip({
   label,
@@ -73,7 +64,7 @@ export default function OnboardingPage() {
       title: "Que estilos gostas? (escolhe os que quiseres)",
       body: (
         <div className="flex flex-wrap gap-2">
-          {STYLES.map((s) => (
+          {STYLE_OPTIONS.map((s) => (
             <Chip
               key={s}
               label={s}

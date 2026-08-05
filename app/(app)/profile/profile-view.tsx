@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, LogIn, LogOut } from "lucide-react";
 import { MOCK_WARDROBE } from "@/lib/mock";
-import { signOutAction } from "./actions";
+import { STYLE_OPTIONS } from "@/lib/styles";
+import { signOutAction, updatePreferredStyles } from "./actions";
 
 export interface ProfileUser {
   name: string | null;
   email: string | null;
   image: string | null;
 }
-
-const STYLE_TAGS = ["Casual", "Minimal", "Formal", "Desporto"];
 
 const ROWS = [
   { emoji: "🧩", label: "O que te falta", href: "/gaps" },
@@ -34,14 +33,24 @@ function initials(user: ProfileUser): string {
   );
 }
 
-export function ProfileView({ user }: { user: ProfileUser | null }) {
-  const [active, setActive] = useState<string[]>(["Casual", "Minimal"]);
+export function ProfileView({
+  user,
+  initialStyles,
+}: {
+  user: ProfileUser | null;
+  initialStyles: string[] | null;
+}) {
+  const [active, setActive] = useState<string[]>(initialStyles ?? []);
+  const [, startTransition] = useTransition();
   const favs = MOCK_WARDROBE.filter((g) => g.fav).length;
 
   function toggle(tag: string) {
-    setActive((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
+    const next = active.includes(tag)
+      ? active.filter((t) => t !== tag)
+      : [...active, tag];
+    setActive(next);
+    // Com sessão, persiste no perfil; sem sessão fica só local.
+    if (user) startTransition(() => void updatePreferredStyles(next));
   }
 
   const stats = [
@@ -107,7 +116,7 @@ export function ProfileView({ user }: { user: ProfileUser | null }) {
           O meu estilo
         </p>
         <div className="flex flex-wrap gap-2">
-          {STYLE_TAGS.map((tag) => {
+          {STYLE_OPTIONS.map((tag) => {
             const on = active.includes(tag);
             return (
               <button

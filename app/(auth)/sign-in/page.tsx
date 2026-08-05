@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Mail } from "lucide-react";
-import { signInWithGoogle } from "./actions";
+import { signInWithGoogle, signInWithEmail } from "./actions";
 
 function GoogleIcon() {
   return (
@@ -30,10 +29,28 @@ function GoogleIcon() {
   );
 }
 
-export default function SignInPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
+const ERROR_MESSAGES: Record<string, string> = {
+  Verification: "Esse link expirou ou já foi usado. Pede um novo.",
+  OAuthAccountNotLinked:
+    "Esse email já entrou por outro método. Usa o mesmo de antes.",
+  AccessDenied: "Acesso recusado. Tenta com outra conta.",
+  Configuration: "Erro do nosso lado. Tenta de novo daqui a pouco.",
+  EmailSignin: "Não conseguimos enviar o email. Tenta outra vez.",
+  EmailSignInError: "Não conseguimos enviar o email. Tenta outra vez.",
+};
 
+function AuthErrorNotice() {
+  const params = useSearchParams();
+  const error = params.get("error");
+  if (!error) return null;
+  return (
+    <p className="w-full rounded-2xl bg-coral/10 px-4 py-3 text-sm font-semibold text-coral-deep">
+      {ERROR_MESSAGES[error] ?? "Não foi possível entrar. Tenta outra vez."}
+    </p>
+  );
+}
+
+export default function SignInPage() {
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
       {/* glow coral→grape no topo */}
@@ -61,6 +78,10 @@ export default function SignInPage() {
           </p>
         </div>
 
+        <Suspense fallback={null}>
+          <AuthErrorNotice />
+        </Suspense>
+
         <div className="flex w-full flex-col gap-3">
           <form action={signInWithGoogle} className="w-full">
             <button
@@ -78,28 +99,29 @@ export default function SignInPage() {
             <span className="h-px flex-1 bg-ink/10" />
           </div>
 
-          <input
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="o-teu@email.com"
-            className="h-13 w-full rounded-full bg-white px-5 text-base shadow-soft outline-none placeholder:text-ink-soft/60 focus:ring-3 focus:ring-coral/40"
-          />
-          <button
-            onClick={() => router.push("/onboarding")}
-            className="flex h-13 w-full items-center justify-center gap-2 rounded-full bg-coral font-extrabold text-white shadow-[0_12px_24px_-6px_rgba(245,59,30,0.6)] transition-transform active:scale-[0.98]"
-          >
-            <Mail className="h-5 w-5" />
-            Receber link de acesso
-          </button>
+          <form action={signInWithEmail} className="flex flex-col gap-3">
+            <input
+              type="email"
+              name="email"
+              required
+              inputMode="email"
+              autoComplete="email"
+              placeholder="o-teu@email.com"
+              className="h-13 w-full rounded-full bg-white px-5 text-base shadow-soft outline-none placeholder:text-ink-soft/60 focus:ring-3 focus:ring-coral/40"
+            />
+            <button
+              type="submit"
+              className="flex h-13 w-full items-center justify-center gap-2 rounded-full bg-coral font-extrabold text-white shadow-[0_12px_24px_-6px_rgba(245,59,30,0.6)] transition-transform active:scale-[0.98]"
+            >
+              <Mail className="h-5 w-5" />
+              Receber link de acesso
+            </button>
+          </form>
         </div>
 
         <p className="text-xs text-ink-soft">
-          Ao continuar aceitas os termos. Já tens conta configurada?{" "}
-          <Link href="/today" className="font-bold text-coral">
-            Entrar
-          </Link>
+          Ao continuar aceitas os termos. O link chega por email e é válido 24
+          horas.
         </p>
       </motion.div>
     </main>

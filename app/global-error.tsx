@@ -20,8 +20,8 @@ export default function GlobalError({
           justifyContent: "center",
           gap: "1rem",
           fontFamily: "system-ui, sans-serif",
-          background: "#fff",
-          color: "#1a1320",
+          background: "#FFF4EC",
+          color: "#17121F",
           textAlign: "center",
           padding: "2rem",
         }}
@@ -36,14 +36,14 @@ export default function GlobalError({
           onClick={() => reset()}
           style={{
             border: "none",
-            borderRadius: "1rem",
+            borderRadius: "100px",
             padding: "0.75rem 1.5rem",
             fontSize: "1rem",
             fontWeight: 600,
             color: "#fff",
             cursor: "pointer",
             backgroundImage:
-              "linear-gradient(120deg, #8b5cf6 0%, #e0529c 55%, #f0883e 100%)",
+              "linear-gradient(160deg, #FF5638 0%, #7B2FF7 100%)",
           }}
         >
           Tentar de novo

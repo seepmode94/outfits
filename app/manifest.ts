@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "A app que te diz o que vestir hoje com a roupa que já tens.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#8b5cf6",
+    background_color: "#FFF4EC",
+    theme_color: "#FF5638",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
       {

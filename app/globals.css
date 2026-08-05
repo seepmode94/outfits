@@ -9,28 +9,26 @@
   --color-foreground: var(--foreground);
 
   /* Fontes — referenciam as variáveis injetadas pelo next/font no <html> */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-heading: var(--font-space-grotesk), var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-bricolage), var(--font-inter), sans-serif;
 
-  /* Cores de marca (para gradientes nos momentos-chave) */
-  --color-brand-1: var(--brand-1);
-  --color-brand-2: var(--brand-2);
-  --color-brand-3: var(--brand-3);
+  /* Paleta da marca (mockup "vibrante & jovem") */
+  --color-cream: var(--cream);
+  --color-cream-2: var(--cream-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-2: var(--ink-2);
+  --color-coral: var(--coral);
+  --color-coral-deep: var(--coral-deep);
+  --color-grape: var(--grape);
+  --color-lime: var(--lime);
+  --color-mint: var(--mint);
+  --color-pink: var(--pink);
 
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+  /* Sombras da marca */
+  --shadow-soft: 0 8px 22px -12px rgba(23, 18, 31, 0.22);
+  --shadow-lift: 0 22px 50px -22px rgba(23, 18, 31, 0.45);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -59,89 +57,40 @@
 :root {
   --radius: 1rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.17 0.01 290);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.01 290);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.01 290);
+  /* Paleta base */
+  --cream: #fff4ec;
+  --cream-2: #ffe9da;
+  --ink: #17121f;
+  --ink-soft: #5a5266;
+  --ink-2: #211a2c;
+  --coral: #ff5638;
+  --coral-deep: #f53b1e;
+  --grape: #7b2ff7;
+  --lime: #d6ff3f;
+  --mint: #25d0b8;
+  --pink: #ff3d91;
 
-  /* Violeta vibrante como cor primária */
-  --primary: oklch(0.55 0.25 295);
-  --primary-foreground: oklch(0.99 0 0);
+  /* Tokens semânticos (shadcn) mapeados na paleta */
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
 
-  --secondary: oklch(0.97 0.012 300);
-  --secondary-foreground: oklch(0.25 0.05 295);
-  --muted: oklch(0.97 0.008 300);
-  --muted-foreground: oklch(0.52 0.02 295);
-  --accent: oklch(0.95 0.03 320);
-  --accent-foreground: oklch(0.3 0.12 300);
-  --destructive: oklch(0.6 0.24 18);
-  --border: oklch(0.92 0.01 300);
-  --input: oklch(0.92 0.01 300);
-  --ring: oklch(0.55 0.25 295);
+  --primary: var(--coral);
+  --primary-foreground: #ffffff;
 
-  /* Stops do gradiente de marca: violeta → magenta → laranja */
-  --brand-1: oklch(0.6 0.25 295);
-  --brand-2: oklch(0.66 0.26 350);
-  --brand-3: oklch(0.74 0.18 45);
-
-  --chart-1: oklch(0.6 0.25 295);
-  --chart-2: oklch(0.66 0.26 350);
-  --chart-3: oklch(0.74 0.18 45);
-  --chart-4: oklch(0.7 0.18 160);
-  --chart-5: oklch(0.65 0.2 230);
-
-  --sidebar: oklch(0.99 0.005 300);
-  --sidebar-foreground: oklch(0.17 0.01 290);
-  --sidebar-primary: oklch(0.55 0.25 295);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.03 320);
-  --sidebar-accent-foreground: oklch(0.3 0.12 300);
-  --sidebar-border: oklch(0.92 0.01 300);
-  --sidebar-ring: oklch(0.55 0.25 295);
-}
-
-.dark {
-  --background: oklch(0.16 0.012 290);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.21 0.015 290);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.21 0.015 290);
-  --popover-foreground: oklch(0.98 0 0);
-
-  --primary: oklch(0.68 0.24 295);
-  --primary-foreground: oklch(0.15 0.01 290);
-
-  --secondary: oklch(0.27 0.02 295);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.27 0.02 295);
-  --muted-foreground: oklch(0.7 0.02 295);
-  --accent: oklch(0.3 0.05 320);
-  --accent-foreground: oklch(0.95 0.02 320);
-  --destructive: oklch(0.7 0.19 22);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.68 0.24 295);
-
-  --brand-1: oklch(0.68 0.24 295);
-  --brand-2: oklch(0.72 0.25 350);
-  --brand-3: oklch(0.78 0.17 45);
-
-  --chart-1: oklch(0.68 0.24 295);
-  --chart-2: oklch(0.72 0.25 350);
-  --chart-3: oklch(0.78 0.17 45);
-  --chart-4: oklch(0.74 0.17 160);
-  --chart-5: oklch(0.7 0.19 230);
-
-  --sidebar: oklch(0.21 0.015 290);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.68 0.24 295);
-  --sidebar-primary-foreground: oklch(0.15 0.01 290);
-  --sidebar-accent: oklch(0.3 0.05 320);
-  --sidebar-accent-foreground: oklch(0.95 0.02 320);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.68 0.24 295);
+  --secondary: var(--cream-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--cream-2);
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--cream-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--coral-deep);
+  --border: rgba(23, 18, 31, 0.08);
+  --input: rgba(23, 18, 31, 0.12);
+  --ring: var(--coral);
 }
 
 @layer base {
@@ -152,95 +101,35 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans antialiased;
   }
-}
-
-@keyframes brand-flow {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Manchas de "aurora" que derivam pelo fundo da página */
-@keyframes aurora-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(24%, -26%) scale(1.2);
-  }
-  66% {
-    transform: translate(-18%, 16%) scale(0.9);
-  }
-}
-@keyframes aurora-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(-26%, 20%) scale(1.15);
-  }
-  66% {
-    transform: translate(20%, -20%) scale(1.08);
-  }
-}
-@keyframes aurora-c {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(22%, 24%) scale(1.25);
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
 }
 
 @layer utilities {
-  /* Gradiente de marca animado — flui continuamente. Usar nos momentos-chave. */
+  /* Gradiente de marca: coral → grape (boas-vindas, perfil, avatares) */
   .bg-brand-gradient {
     background-image: linear-gradient(
-      120deg,
-      var(--brand-1) 0%,
-      var(--brand-2) 50%,
-      var(--brand-3) 100%
+      160deg,
+      var(--coral) 0%,
+      var(--grape) 100%
     );
-    background-size: 300% 300%;
-    animation: brand-flow 4s ease-in-out infinite;
   }
   .text-brand-gradient {
     background-image: linear-gradient(
       120deg,
-      var(--brand-1) 0%,
-      var(--brand-2) 50%,
-      var(--brand-3) 100%
+      var(--coral) 0%,
+      var(--grape) 100%
     );
-    background-size: 300% 300%;
-    animation: brand-flow 4s ease-in-out infinite;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .font-heading {
-    font-family: var(--font-heading);
-  }
-  .aurora-a {
-    animation: aurora-a 9s ease-in-out infinite;
-  }
-  .aurora-b {
-    animation: aurora-b 11s ease-in-out infinite;
-  }
-  .aurora-c {
-    animation: aurora-c 13s ease-in-out infinite;
-  }
 }
-
-/* NOTA: acessibilidade (prefers-reduced-motion) a reintroduzir na fase de polish.
-   Removido por agora para garantir que o gradiente animado é sempre visível. */

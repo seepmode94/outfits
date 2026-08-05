@@ -1,66 +1,103 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, ThumbsUp, ThumbsDown, RefreshCw, CloudSun } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import { OutfitBoard } from "@/components/outfit/outfit-board";
-import { MOCK_OUTFIT, MOCK_EXPLANATION } from "@/lib/mock";
+import { MOCK_OUTFIT, MOCK_EXPLANATION, MOCK_WEATHER } from "@/lib/mock";
 
-const OCCASIONS = ["Casual", "Escritório", "Evento", "Desporto", "Encontro"];
+const OCCASIONS = [
+  { emoji: "💼", label: "Trabalho" },
+  { emoji: "🍷", label: "Jantar" },
+  { emoji: "🏋️", label: "Ginásio" },
+];
+
 type Phase = "choose" | "generating" | "result";
 
+function todayLabel() {
+  const parts = new Intl.DateTimeFormat("pt-PT", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).formatToParts(new Date());
+  const weekday = parts.find((p) => p.type === "weekday")?.value ?? "";
+  const day = parts.find((p) => p.type === "day")?.value ?? "";
+  const month = (parts.find((p) => p.type === "month")?.value ?? "").slice(0, 3);
+  const short = weekday.replace("-feira", "");
+  return `${short.charAt(0).toUpperCase() + short.slice(1)} · ${day} ${month}`;
+}
+
 export default function TodayPage() {
-  const [occasion, setOccasion] = useState("Casual");
+  const [occasion, setOccasion] = useState("Trabalho");
   const [phase, setPhase] = useState<Phase>("choose");
-  const [vote, setVote] = useState<"up" | "down" | null>(null);
+  const [saved, setSaved] = useState(false);
 
   function generate() {
-    setVote(null);
+    setSaved(false);
     setPhase("generating");
     // simula a IA a pensar (mock — liga-se ao Gemini depois)
     setTimeout(() => setPhase("result"), 1500);
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pt-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold">
-          Veste-me <span className="text-brand-gradient">hoje</span>
-        </h1>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <CloudSun className="h-4 w-4" />
-          <span>18°C · pouco nublado</span>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col pt-6">
+      <header className="flex items-center justify-between px-5 pb-4">
+        <div>
+          <h1 className="font-heading text-[26px] font-extrabold">
+            Outfit de hoje
+          </h1>
+          <p className="mt-0.5 text-xs text-ink-soft">{todayLabel()}</p>
         </div>
+        <Link
+          href="/profile"
+          aria-label="Perfil"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-gradient text-base font-extrabold text-white"
+        >
+          AS
+        </Link>
       </header>
 
-      {/* ocasião */}
-      <section className="flex flex-col gap-3">
-        <p className="text-sm font-medium text-muted-foreground">
-          Para que ocasião?
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {OCCASIONS.map((o) => {
-            const active = o === occasion;
-            return (
-              <button
-                key={o}
-                onClick={() => setOccasion(o)}
-                className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-transparent bg-brand-gradient text-white"
-                    : "border-border bg-background text-foreground/70 hover:bg-secondary"
-                }`}
-              >
-                {o}
-              </button>
-            );
-          })}
+      {/* meteorologia */}
+      <div className="mx-5 mb-4 flex items-center justify-between rounded-[20px] bg-ink px-4.5 py-4 text-cream">
+        <div>
+          <p className="text-[11px] opacity-80">
+            {MOCK_WEATHER.city} · {MOCK_WEATHER.note}
+          </p>
+          <p className="font-heading text-3xl font-extrabold leading-none">
+            {MOCK_WEATHER.temp}°
+          </p>
         </div>
-      </section>
+        <p className="text-right text-[11px] opacity-80">
+          máx {MOCK_WEATHER.max}° · {MOCK_WEATHER.rain}
+        </p>
+      </div>
+
+      {/* ocasião */}
+      <div className="flex gap-2 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
+        {OCCASIONS.map((o) => {
+          const active = o.label === occasion;
+          return (
+            <button
+              key={o.label}
+              onClick={() => {
+                setOccasion(o.label);
+                if (phase === "result") generate();
+              }}
+              className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-bold whitespace-nowrap transition-colors ${
+                active
+                  ? "border-coral bg-coral text-white"
+                  : "border-ink/10 bg-white text-ink"
+              }`}
+            >
+              {o.emoji} {o.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* área dinâmica */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col px-5 pb-24">
         <AnimatePresence mode="wait">
           {phase === "choose" && (
             <motion.div
@@ -70,17 +107,17 @@ export default function TodayPage() {
               exit={{ opacity: 0 }}
               className="flex flex-1 flex-col items-center justify-center gap-4 py-10 text-center"
             >
-              <p className="max-w-xs text-muted-foreground">
-                Pronto para um outfit {occasion.toLowerCase()} com a roupa que já
-                tens?
+              <p className="max-w-xs text-sm text-ink-soft">
+                Pronto para um outfit de {occasion.toLowerCase()} com a roupa
+                que já tens?
               </p>
-              <Button
+              <button
                 onClick={generate}
-                className="h-13 rounded-2xl bg-brand-gradient px-8 text-base font-semibold text-white shadow-lg shadow-primary/25 active:scale-[0.98]"
+                className="flex h-13 items-center gap-2 rounded-full bg-coral px-8 text-base font-extrabold text-white shadow-[0_12px_24px_-6px_rgba(245,59,30,0.6)] transition-transform active:scale-[0.98]"
               >
                 <Sparkles className="h-5 w-5" />
                 Gerar outfit
-              </Button>
+              </button>
             </motion.div>
           )}
 
@@ -90,21 +127,28 @@ export default function TodayPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-2 gap-3 py-2"
+              className="rounded-[26px] bg-white p-4 shadow-soft"
             >
-              {[0, 1, 2, 3].map((i) => (
+              <div className="grid grid-cols-[1.1fr_1fr] gap-2.5">
                 <motion.div
-                  key={i}
-                  className="aspect-square rounded-3xl bg-secondary"
+                  className="row-span-2 min-h-42 rounded-2xl bg-cream-2"
                   animate={{ opacity: [0.4, 1, 0.4] }}
-                  transition={{
-                    duration: 1.1,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                  }}
+                  transition={{ duration: 1.1, repeat: Infinity }}
                 />
-              ))}
-              <p className="col-span-2 mt-2 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                {[1, 2, 3].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="h-20 rounded-2xl bg-cream-2"
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{
+                      duration: 1.1,
+                      repeat: Infinity,
+                      delay: i * 0.15,
+                    }}
+                  />
+                ))}
+              </div>
+              <p className="mt-4 flex items-center justify-center gap-2 text-sm text-ink-soft">
                 <Sparkles className="h-4 w-4 animate-pulse" />A escolher o teu
                 outfit…
               </p>
@@ -117,53 +161,42 @@ export default function TodayPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col gap-5"
+              className="rounded-[26px] bg-white p-4 shadow-soft"
             >
+              <div className="mb-3.5 flex items-center justify-between">
+                <p className="text-[15px] font-bold">A tua sugestão nº1</p>
+                <span className="rounded-full bg-lime px-3 py-1.5 text-[11px] font-extrabold text-ink">
+                  96% match
+                </span>
+              </div>
+
               <OutfitBoard items={MOCK_OUTFIT} />
 
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: MOCK_OUTFIT.length * 0.15 + 0.1 }}
-                className="rounded-2xl bg-secondary/60 p-4 text-sm leading-relaxed"
+                className="mt-3.5 rounded-2xl bg-cream px-3.5 py-3 text-xs leading-relaxed text-ink-soft"
               >
-                {MOCK_EXPLANATION}
+                💡 <b className="text-coral-deep">Porquê?</b> {MOCK_EXPLANATION}
               </motion.div>
 
-              {/* feedback */}
-              <div className="flex items-center justify-center gap-3">
+              <div className="mt-3.5 flex gap-2.5">
                 <button
-                  onClick={() => setVote("down")}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full border transition-colors ${
-                    vote === "down"
-                      ? "border-destructive bg-destructive/10 text-destructive"
-                      : "border-border text-muted-foreground hover:bg-secondary"
+                  onClick={() => setSaved(true)}
+                  className={`flex-1 rounded-full py-3.5 text-[13px] font-extrabold transition-colors ${
+                    saved ? "bg-lime text-ink" : "bg-ink text-cream"
                   }`}
-                  aria-label="Não gostei"
                 >
-                  <ThumbsDown className="h-5 w-5" />
+                  {saved ? "✓ Guardado" : "❤️ Guardar"}
                 </button>
                 <button
-                  onClick={() => setVote("up")}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full border transition-colors ${
-                    vote === "up"
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:bg-secondary"
-                  }`}
-                  aria-label="Gostei"
+                  onClick={generate}
+                  className="flex-1 rounded-full bg-cream-2 py-3.5 text-[13px] font-extrabold text-ink transition-transform active:scale-[0.98]"
                 >
-                  <ThumbsUp className="h-5 w-5" />
+                  🔄 Outro
                 </button>
               </div>
-
-              <Button
-                variant="outline"
-                onClick={generate}
-                className="w-full rounded-2xl"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Tentar outro
-              </Button>
             </motion.div>
           )}
         </AnimatePresence>

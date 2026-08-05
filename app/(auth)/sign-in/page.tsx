@@ -36,6 +36,7 @@ export default function SignInPage() {
 
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6">
+      {/* glow coral→grape no topo */}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-brand-gradient opacity-25 blur-3xl"
@@ -48,11 +49,14 @@ export default function SignInPage() {
         className="z-10 flex w-full max-w-sm flex-col items-center gap-7 text-center"
       >
         <div className="flex flex-col items-center gap-2">
-          <span className="text-3xl">✨</span>
-          <h1 className="font-heading text-3xl font-bold">
+          <span className="flex items-center gap-2 font-heading text-2xl font-extrabold">
+            <span className="h-2.5 w-2.5 rounded-full bg-coral shadow-[0_0_0_5px_rgba(255,86,56,0.18)]" />
+            outfits
+          </span>
+          <h1 className="font-heading text-3xl font-extrabold">
             Entra no <span className="text-brand-gradient">Outfits</span>
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-ink-soft">
             Guarda o teu guarda-roupa e recebe sugestões todos os dias.
           </p>
         </div>
@@ -61,17 +65,17 @@ export default function SignInPage() {
           <form action={signInWithGoogle} className="w-full">
             <button
               type="submit"
-              className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-background font-semibold transition-colors hover:bg-secondary"
+              className="flex h-13 w-full items-center justify-center gap-3 rounded-full bg-white font-bold shadow-soft transition-transform active:scale-[0.98]"
             >
               <GoogleIcon />
               Continuar com Google
             </button>
           </form>
 
-          <div className="flex items-center gap-3 py-1 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
+          <div className="flex items-center gap-3 py-1 text-xs text-ink-soft">
+            <span className="h-px flex-1 bg-ink/10" />
             ou
-            <span className="h-px flex-1 bg-border" />
+            <span className="h-px flex-1 bg-ink/10" />
           </div>
 
           <input
@@ -80,20 +84,20 @@ export default function SignInPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="o-teu@email.com"
-            className="h-13 w-full rounded-2xl border border-border bg-background px-4 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/40"
+            className="h-13 w-full rounded-full bg-white px-5 text-base shadow-soft outline-none placeholder:text-ink-soft/60 focus:ring-3 focus:ring-coral/40"
           />
           <button
             onClick={() => router.push("/onboarding")}
-            className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-brand-gradient font-semibold text-white shadow-lg shadow-primary/25 transition-transform active:scale-[0.98]"
+            className="flex h-13 w-full items-center justify-center gap-2 rounded-full bg-coral font-extrabold text-white shadow-[0_12px_24px_-6px_rgba(245,59,30,0.6)] transition-transform active:scale-[0.98]"
           >
             <Mail className="h-5 w-5" />
             Receber link de acesso
           </button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-ink-soft">
           Ao continuar aceitas os termos. Já tens conta configurada?{" "}
-          <Link href="/today" className="font-medium text-primary">
+          <Link href="/today" className="font-bold text-coral">
             Entrar
           </Link>
         </p>

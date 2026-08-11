@@ -1,12 +1,13 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { suggestOutfit } from "@/lib/ai";
 import { CATEGORY_LABELS, FORMALITY_LABELS, type Formality } from "@/lib/attributes";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { outfitGarments, outfits, profiles } from "@/lib/db/schema";
+import { feedback, outfitGarments, outfits, profiles } from "@/lib/db/schema";
+import { getFeedbackGarments } from "@/lib/db/feedback";
 import { listWardrobeFull } from "@/lib/db/wardrobe";
 import { getWeatherForDistrict } from "@/lib/weather";
 
@@ -51,14 +52,17 @@ export async function generateOutfit(
     };
   }
 
-  const [profile] = await db
-    .select({
-      district: profiles.district,
-      gender: profiles.gender,
-      preferredStyles: profiles.preferredStyles,
-    })
-    .from(profiles)
-    .where(eq(profiles.userId, userId));
+  const [[profile], pastFeedback] = await Promise.all([
+    db
+      .select({
+        district: profiles.district,
+        gender: profiles.gender,
+        preferredStyles: profiles.preferredStyles,
+      })
+      .from(profiles)
+      .where(eq(profiles.userId, userId)),
+    getFeedbackGarments(userId),
+  ]);
 
   const weather = profile?.district
     ? await getWeatherForDistrict(profile.district)
@@ -89,6 +93,9 @@ export async function generateOutfit(
         gender: profile?.gender ?? null,
         preferredStyles: profile?.preferredStyles ?? null,
       },
+      // O 👍👎 de sugestões anteriores, resolvido a Peças: é isto que faz a
+      // IA "aprender contigo" (PRD, pilar 4) — prioriza umas, evita outras.
+      feedback: pastFeedback,
     });
   } catch (e) {
     console.error("[today] suggestOutfit falhou", e);
@@ -153,6 +160,47 @@ export async function generateOutfit(
     items,
     explanation: suggestion.explanation,
   };
+}
+
+/**
+ * Regista o 👍👎 do utilizador sobre uma sugestão.
+ *
+ * Uma opinião por (utilizador, outfit): mudar de ideias **substitui** a
+ * anterior em vez de empilhar linhas — o histórico de hesitações não alimenta
+ * nada, e é a opinião final que o `getFeedbackGarments` deve ler. O feedback
+ * direto a Peças (`feedback.garment_id`) continua reservado a outro fim.
+ */
+export async function giveFeedback(
+  outfitId: string,
+  value: "like" | "dislike",
+) {
+  const session = await auth().catch(() => null);
+  const userId = session?.user?.id;
+  if (!userId) return;
+
+  // O outfit tem de ser deste utilizador — sem isto, um uuid adivinhado
+  // permitia envenenar o feedback (e as sugestões futuras) de outra pessoa.
+  const [own] = await db
+    .select({ id: outfits.id })
+    .from(outfits)
+    .where(and(eq(outfits.userId, userId), eq(outfits.id, outfitId)));
+  if (!own) return;
+
+  const updated = await db
+    .update(feedback)
+    .set({ value })
+    .where(
+      and(
+        eq(feedback.userId, userId),
+        eq(feedback.outfitId, outfitId),
+        isNull(feedback.garmentId),
+      ),
+    )
+    .returning({ id: feedback.id });
+
+  if (updated.length === 0) {
+    await db.insert(feedback).values({ userId, outfitId, value });
+  }
 }
 
 /** Marca uma sugestão como guardada — o ❤️ do ecrã deixa de ser decorativo. */

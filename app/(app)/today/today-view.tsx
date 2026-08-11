@@ -11,7 +11,12 @@ import {
   type Formality,
 } from "@/lib/attributes";
 import type { Weather } from "@/lib/weather";
-import { generateOutfit, saveOutfit, type GenerateResult } from "./actions";
+import {
+  generateOutfit,
+  giveFeedback,
+  saveOutfit,
+  type GenerateResult,
+} from "./actions";
 
 type Phase = "choose" | "generating" | "result";
 
@@ -46,6 +51,7 @@ export function TodayView({
   const [phase, setPhase] = useState<Phase>("choose");
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [saved, setSaved] = useState(false);
+  const [fb, setFb] = useState<"like" | "dislike" | null>(null);
   const [, startTransition] = useTransition();
 
   function toggle(f: Formality) {
@@ -56,6 +62,7 @@ export function TodayView({
 
   function generate() {
     setSaved(false);
+    setFb(null); // o feedback é desta sugestão, não da próxima
     setResult(null);
     setPhase("generating");
     startTransition(async () => {
@@ -63,6 +70,12 @@ export function TodayView({
       setResult(res);
       setPhase(res.ok ? "result" : "choose");
     });
+  }
+
+  function rate(value: "like" | "dislike") {
+    if (!result?.ok) return;
+    setFb(value); // optimista; repetir o toque no mesmo não desfaz — é a opinião final
+    startTransition(() => void giveFeedback(result.outfitId, value));
   }
 
   function save() {
@@ -295,7 +308,40 @@ export function TodayView({
                 {result.explanation}
               </motion.div>
 
-              <div className="mt-3.5 flex gap-2.5">
+              {/* feedback — alimenta as próximas sugestões (PRD, pilar 4) */}
+              <div className="mt-2.5 flex items-center justify-between rounded-2xl bg-cream-2 px-3.5 py-2">
+                <span className="text-[11px] font-semibold text-ink-soft">
+                  {fb === null
+                    ? "As próximas sugestões aprendem com isto"
+                    : fb === "like"
+                      ? "Boa! Vou priorizar peças assim."
+                      : "Anotado. Vou evitar esta combinação."}
+                </span>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => rate("like")}
+                    aria-pressed={fb === "like"}
+                    aria-label="Gostei desta sugestão"
+                    className={`flex h-9 w-9 items-center justify-center rounded-full text-base transition-transform active:scale-90 ${
+                      fb === "like" ? "bg-lime" : "bg-white shadow-soft"
+                    }`}
+                  >
+                    👍
+                  </button>
+                  <button
+                    onClick={() => rate("dislike")}
+                    aria-pressed={fb === "dislike"}
+                    aria-label="Não gostei desta sugestão"
+                    className={`flex h-9 w-9 items-center justify-center rounded-full text-base transition-transform active:scale-90 ${
+                      fb === "dislike" ? "bg-coral text-white" : "bg-white shadow-soft"
+                    }`}
+                  >
+                    👎
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-2.5 flex gap-2.5">
                 <button
                   onClick={save}
                   className={`flex-1 rounded-full py-3.5 text-[13px] font-extrabold transition-colors ${

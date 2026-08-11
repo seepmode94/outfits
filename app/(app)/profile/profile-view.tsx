@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, LogIn, LogOut } from "lucide-react";
-import { MOCK_WARDROBE } from "@/lib/mock";
 import { STYLE_OPTIONS } from "@/lib/styles";
 import { signOutAction, updatePreferredStyles } from "./actions";
 
@@ -36,13 +35,15 @@ function initials(user: ProfileUser): string {
 export function ProfileView({
   user,
   initialStyles,
+  counts,
 }: {
   user: ProfileUser | null;
   initialStyles: string[] | null;
+  /** Contagens reais do Armário. `null` quando não há sessão ou a leitura falhou. */
+  counts: { total: number; favourites: number } | null;
 }) {
   const [active, setActive] = useState<string[]>(initialStyles ?? []);
   const [, startTransition] = useTransition();
-  const favs = MOCK_WARDROBE.filter((g) => g.fav).length;
 
   function toggle(tag: string) {
     const next = active.includes(tag)
@@ -53,10 +54,12 @@ export function ProfileView({
     if (user) startTransition(() => void updatePreferredStyles(next));
   }
 
-  const stats = [
-    { n: MOCK_WARDROBE.length, l: "Peças" },
-    { n: 4, l: "Outfits" },
-    { n: favs, l: "Favoritos" },
+  // "Outfits" fica em "—" de propósito: os outfits ainda não são gerados nem
+  // guardados, e um número inventado ao lado de duas contagens reais mente.
+  const stats: { n: number | string; l: string }[] = [
+    { n: counts?.total ?? "—", l: "Peças" },
+    { n: "—", l: "Outfits" },
+    { n: counts?.favourites ?? "—", l: "Favoritos" },
   ];
 
   return (

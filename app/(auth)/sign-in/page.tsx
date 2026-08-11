@@ -74,7 +74,7 @@ export default function SignInPage() {
             Entra no <span className="text-brand-gradient">Outfits</span>
           </h1>
           <p className="text-sm text-ink-soft">
-            Guarda o teu guarda-roupa e recebe sugestões todos os dias.
+            Guarda o teu armário e recebe sugestões todos os dias.
           </p>
         </div>
 

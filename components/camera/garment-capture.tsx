@@ -56,7 +56,8 @@ export function GarmentCapture({
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture="environment"
+        // Sem `capture`: com ele, iOS e Android abrem a câmara directamente e
+        // não deixam escolher da galeria. O sistema oferece as duas opções.
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -87,7 +88,7 @@ export function GarmentCapture({
                 <Camera className="h-10 w-10 text-lime" />
               </span>
               <span className="absolute bottom-4 text-xs font-medium text-cream/85">
-                Toca para fotografar — centra a peça no quadro
+                Fotografa ou escolhe da galeria — centra a peça no quadro
               </span>
             </motion.button>
           )}

@@ -54,7 +54,7 @@ ${JSON.stringify(ctx.garments)}`;
 }
 
 /**
- * Sugere um outfit a partir do guarda-roupa do utilizador, considerando
+ * Sugere um outfit a partir do armário do utilizador, considerando
  * ocasião, tempo, estação, perfil e histórico de feedback.
  */
 export async function suggestOutfit(

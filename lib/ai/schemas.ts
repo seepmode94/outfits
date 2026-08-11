@@ -31,7 +31,7 @@ export const garmentAttributesSchema = z.object({
 export type GarmentAttributes = z.infer<typeof garmentAttributesSchema>;
 
 // ─────────────────────────────────────────────────────────────
-// Sugestão de outfit (saída do raciocínio sobre o guarda-roupa)
+// Sugestão de outfit (saída do raciocínio sobre o armário)
 // ─────────────────────────────────────────────────────────────
 export const outfitSuggestionSchema = z.object({
   items: z

@@ -2,11 +2,13 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
+import { countWardrobe } from "@/lib/db/wardrobe";
 import { ProfileView, type ProfileUser } from "./profile-view";
 
 export default async function ProfilePage() {
   let user: ProfileUser | null = null;
   let savedStyles: string[] | null = null;
+  let counts: { total: number; favourites: number } | null = null;
 
   try {
     const session = await auth();
@@ -17,11 +19,15 @@ export default async function ProfilePage() {
         image: session.user.image ?? null,
       };
       if (session.user.id) {
-        const [profile] = await db
-          .select({ preferredStyles: profiles.preferredStyles })
-          .from(profiles)
-          .where(eq(profiles.userId, session.user.id));
+        const [[profile], wardrobeCounts] = await Promise.all([
+          db
+            .select({ preferredStyles: profiles.preferredStyles })
+            .from(profiles)
+            .where(eq(profiles.userId, session.user.id)),
+          countWardrobe(session.user.id),
+        ]);
         savedStyles = profile?.preferredStyles ?? null;
+        counts = wardrobeCounts;
       }
     }
   } catch {
@@ -29,5 +35,7 @@ export default async function ProfilePage() {
     // em vez de rebentar a página.
   }
 
-  return <ProfileView user={user} initialStyles={savedStyles} />;
+  return (
+    <ProfileView user={user} initialStyles={savedStyles} counts={counts} />
+  );
 }

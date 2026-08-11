@@ -14,7 +14,7 @@ export default function GapsPage() {
             O que te falta
           </h1>
           <p className="mt-0.5 text-xs text-ink-soft">
-            Para completar o guarda-roupa
+            Para completar o armário
           </p>
         </div>
         <Link

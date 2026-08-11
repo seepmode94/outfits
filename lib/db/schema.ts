@@ -5,6 +5,7 @@ import {
   uuid,
   integer,
   jsonb,
+  boolean,
   timestamp,
   primaryKey,
 } from "drizzle-orm/pg-core";
@@ -133,7 +134,12 @@ export const garments = pgTable("garment", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  // O Recorte: PNG de fundo transparente. É o que a interface mostra.
   imageUrl: text("image_url").notNull(),
+  // A Foto original, nunca exibida ao utilizador. Existe para se poder refazer
+  // o Recorte sem lhe pedir nova fotografia (ADR-0002). Nullable: as Peças
+  // criadas antes desta migração não a têm.
+  originalImageUrl: text("original_image_url"),
   category: garmentCategoryEnum("category").notNull(),
   subcategory: text("subcategory"),
   primaryColor: text("primary_color"),
@@ -143,6 +149,10 @@ export const garments = pgTable("garment", {
   seasons: seasonEnum("seasons").array(),
   material: text("material"),
   notes: text("notes"),
+  // Favorito: marca do utilizador sobre a Peça, não um Atributo — a IA não a
+  // propõe. Estado alternável, por isso coluna e não linha em `feedback`, que
+  // guarda acontecimentos ("esta peça não funcionou neste outfit"). Ver ADR-0002.
+  isFavourite: boolean("is_favourite").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

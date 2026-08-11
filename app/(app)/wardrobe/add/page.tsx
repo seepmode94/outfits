@@ -5,12 +5,6 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { GarmentCapture } from "@/components/camera/garment-capture";
 
-const RECOGNIZED = [
-  { emoji: "👟", bg: "#EFFFC7", label: "Ténis", sub: "Tipo de peça" },
-  { emoji: "🎨", bg: "#DDF7F2", label: "Branco / creme", sub: "Cor dominante" },
-  { emoji: "🏷️", bg: "#E9DDFF", label: "Casual · desporto", sub: "Estilo sugerido" },
-];
-
 export default function AddGarmentPage() {
   const [cutout, setCutout] = useState<string | null>(null);
 
@@ -42,34 +36,7 @@ export default function AddGarmentPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 260, damping: 24 }}
         >
-          <p className="px-5 pt-5 pb-2.5 text-xs font-extrabold tracking-wider text-ink-soft uppercase">
-            Reconhecido pela IA
-          </p>
-
-          {/* Atributos de exemplo — a IA real liga-se com a chave Gemini */}
-          {RECOGNIZED.map((r, i) => (
-            <motion.div
-              key={r.label}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 + i * 0.1 }}
-              className="mx-5 mb-2.5 flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 shadow-soft"
-            >
-              <span
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-2xl"
-                style={{ background: r.bg }}
-              >
-                {r.emoji}
-              </span>
-              <span>
-                <b className="block text-[13px]">{r.label}</b>
-                <small className="text-[11px] text-ink-soft">{r.sub}</small>
-              </span>
-              <span className="ml-auto text-lg font-extrabold text-mint">✓</span>
-            </motion.div>
-          ))}
-
-          <div className="px-5 pt-3">
+          <div className="px-5 pt-5">
             <button
               disabled
               className="w-full rounded-full bg-coral py-4 text-sm font-extrabold text-white opacity-60"
@@ -77,8 +44,9 @@ export default function AddGarmentPage() {
               📸 Guardar no armário
             </button>
             <p className="pt-3 text-center text-xs text-ink-soft">
-              O reconhecimento por IA e a gravação ligam-se quando configurares
-              a chave Gemini e a base de dados.
+              O recorte já é feito no servidor. Falta o armazenamento de imagens
+              para a peça poder ficar guardada — até lá este recorte vive só
+              neste ecrã.
             </p>
           </div>
         </motion.section>

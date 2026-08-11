@@ -4,7 +4,36 @@ import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Camera, RefreshCw } from "lucide-react";
 
-type Stage = "idle" | "processing" | "done";
+type Stage = "idle" | "preparing" | "cutting" | "done";
+
+/** Lado maior enviado ao servidor. Ver ADR-0002: reduzir antes de subir. */
+const MAX_EDGE = 2048;
+const JPEG_QUALITY = 0.85;
+
+/**
+ * Reduz a fotografia no browser antes do upload. Uma foto de telemóvel são
+ * 2–5 MB e a rede móvel paga-a; 2048px é mais do que o Recorte precisa.
+ */
+async function shrink(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("sem contexto 2d");
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/jpeg", JPEG_QUALITY),
+  );
+  if (!blob) throw new Error("não consegui codificar a fotografia");
+  return blob;
+}
 
 export function GarmentCapture({
   onCutout,
@@ -14,31 +43,40 @@ export function GarmentCapture({
   const [stage, setStage] = useState<Stage>("idle");
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
   const [cutoutUrl, setCutoutUrl] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
     setError(null);
-    setProgress(0);
     setCutoutUrl(null);
     setOriginalUrl(URL.createObjectURL(file));
-    setStage("processing");
+    setStage("preparing");
 
     try {
-      const { removeBackground } = await import("@imgly/background-removal");
-      const blob = await removeBackground(file, {
-        progress: (_key, current, total) => {
-          if (total > 0) setProgress(Math.round((current / total) * 100));
-        },
+      const reduced = await shrink(file);
+
+      setStage("cutting");
+      const res = await fetch("/api/cutout", {
+        method: "POST",
+        headers: { "content-type": "image/jpeg" },
+        body: reduced,
       });
-      const url = URL.createObjectURL(blob);
+
+      if (!res.ok) {
+        // O servidor manda a razão em português; mostra-se essa, não um genérico.
+        const { error: reason } = await res
+          .json()
+          .catch(() => ({ error: null }));
+        throw new Error(reason ?? "O recorte falhou.");
+      }
+
+      const url = URL.createObjectURL(await res.blob());
       setCutoutUrl(url);
       setStage("done");
       onCutout?.(url);
     } catch (e) {
       console.error(e);
-      setError("Não consegui recortar a imagem. Tenta outra foto.");
+      setError(e instanceof Error ? e.message : "O recorte falhou.");
       setStage("idle");
     }
   }
@@ -49,6 +87,8 @@ export function GarmentCapture({
     setCutoutUrl(null);
     setError(null);
   }
+
+  const busy = stage === "preparing" || stage === "cutting";
 
   return (
     <div className="w-full">
@@ -93,10 +133,10 @@ export function GarmentCapture({
             </motion.button>
           )}
 
-          {/* ───────── PROCESSING ───────── */}
-          {stage === "processing" && (
+          {/* ───────── A TRABALHAR ───────── */}
+          {busy && (
             <motion.div
-              key="processing"
+              key="busy"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -121,8 +161,10 @@ export function GarmentCapture({
                 animate={{ backgroundPositionX: ["150%", "-50%"] }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
               />
+              {/* O recorte agora é do servidor e não reporta progresso, por isso
+                  o estado diz-se por etapas em vez de uma percentagem falsa. */}
               <span className="absolute top-4 left-4 rounded-full bg-lime px-2.5 py-1 text-[10px] font-extrabold text-ink">
-                ● A analisar… {progress > 0 && `${progress}%`}
+                ● {stage === "preparing" ? "A preparar a foto…" : "A recortar…"}
               </span>
             </motion.div>
           )}

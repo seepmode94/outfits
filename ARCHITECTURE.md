@@ -7,7 +7,7 @@
 
 ## 1. Visão técnica em uma frase
 
-App **Next.js (App Router) + PWA**, com **Server Components** a fazer o trabalho de dados e ecrãs interativos (câmara, gestos, motion) como **Client Components**. A IA (Gemini) vive numa **camada isolada** no servidor, que devolve **JSON estruturado**. Imagens recortadas no dispositivo e guardadas em Blob.
+App **Next.js (App Router) + PWA**, com **Server Components** a fazer o trabalho de dados e ecrãs interativos (câmara, gestos, motion) como **Client Components**. A IA (Gemini) vive numa **camada isolada** no servidor, que devolve **JSON estruturado**. Imagens recortadas **no servidor** ([ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md)) e guardadas em Blob.
 
 ---
 
@@ -20,7 +20,7 @@ App **Next.js (App Router) + PWA**, com **Server Components** a fazer o trabalho
 | UI | Tailwind + shadcn/ui | Base moderna e limpa | ✅ |
 | Motion | Motion (Framer Motion) | Gestos + animações | ✅ |
 | IA | Gemini via **Vercel AI SDK** (provider Google) | Output estruturado com Zod, e mantém a IA *trocável* | ✅ |
-| Recorte | `@imgly/background-removal` (browser) | On-device, grátis, privado | ✅ |
+| Recorte | ~~`@imgly/background-removal` (browser)~~ → **no servidor**, via geração de imagem do Gemini | Ver [ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md): ~95 MB no telemóvel + licença AGPL | ⛔ **bloqueado**: exige faturação Gemini (`free tier limit: 0`) |
 | Meteorologia | Open-Meteo | Grátis, sem chave | ✅ |
 | **Base de dados** | **Postgres (Neon, via Vercel)** | Serverless, integra com Vercel | ✅ |
 | **ORM** | **Drizzle** | Leve, type-safe, migrations simples | ✅ |
@@ -44,7 +44,7 @@ outfits/
 │       ├── layout.tsx              # tab bar inferior + motion de transição
 │       ├── page.tsx                # 🏠 "Veste-me hoje" (home/herói)
 │       ├── wardrobe/
-│       │   ├── page.tsx            # grelha do guarda-roupa
+│       │   ├── page.tsx            # grelha do armário
 │       │   ├── add/page.tsx        # fluxo adicionar peça
 │       │   └── [id]/page.tsx       # detalhe da peça
 │       ├── outfit/
@@ -123,13 +123,13 @@ outfits/
                  │
    ┌─────────────┼──────────────┐
    ▼             ▼              ▼
-🏠 Veste-me    👕 Guarda-     👤 Perfil
-   hoje           roupa
+🏠 Veste-me    👕 Armário     👤 Perfil
+   hoje
 ```
 
 **1. 🏠 Veste-me hoje (herói)**
 - Escolhe **ocasião** → app mostra **tempo do distrito** → botão *Gerar outfit*.
-- Se o guarda-roupa estiver vazio → CTA para adicionar peças.
+- Se o armário estiver vazio → CTA para adicionar peças.
 
 **2. Resultado do outfit** (`outfit/[id]`)
 - 🎬 **Quadro animado**: peças encaixam uma a uma.
@@ -137,7 +137,7 @@ outfits/
 - 👍👎 **Feedback por gesto** (arrastar).
 - Ações: *Tentar outro* · *Guardar*.
 
-**3. 👕 Guarda-roupa** (`wardrobe`)
+**3. 👕 Armário** (`wardrobe`)
 - Grelha de peças por categoria, com filtro.
 - FAB **+** → fluxo de adicionar.
 - Tocar numa peça → 🔍 transição partilhada para detalhe.
@@ -169,7 +169,7 @@ suggestOutfit(input: SuggestionContext): Promise<OutfitSuggestion>
 
 ## 7. Fluxos de dados (resumo)
 
-**Adicionar peça**: Câmara (client) → recorte on-device → upload PNG para Blob → `analyzeGarment` (server) → form de confirmação → grava em `garments`.
+**Adicionar peça**: Câmara ou galeria (client) → browser reduz a **Foto original** → `POST` a um **Route Handler** → servidor guarda a **Captura** no Blob → **em paralelo**: recorte no servidor *(fornecedor por fechar)* e `analyzeGarment` sobre a Foto original → form de confirmação dos **Atributos** → só então grava em `garments` (Recorte + Foto original + Atributos). *(Desenhado a 2026-08-11 — [ADR-0002](./docs/adr/0002-pipeline-de-adicionar-peca.md); recorte no servidor por [ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md).)*
 
 **Gerar outfit**: ocasião (client) → busca peças + perfil + feedback + `weather` (server) → `suggestOutfit` → grava `outfit` + `outfit_garments` → renderiza quadro animado.
 
@@ -178,7 +178,7 @@ suggestOutfit(input: SuggestionContext): Promise<OutfitSuggestion>
 ## 8. PWA & performance
 
 - `manifest.json` + ícones + service worker → instalável, ecrã inteiro, splash.
-- Imagens otimizadas (Next/Image) e recorte on-device para não sobrecarregar o servidor.
+- Imagens otimizadas (Next/Image). O recorte é feito no servidor por API gerida ([ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md)); a foto deve ser reduzida no cliente antes do upload para não castigar a rede móvel.
 - Motion com `prefers-reduced-motion` e degradação elegante em aparelhos fracos.
 
 ---
@@ -188,4 +188,4 @@ suggestOutfit(input: SuggestionContext): Promise<OutfitSuggestion>
 1. **Confirmar as 3 decisões** da secção 2 (ORM · Auth · Neon+Blob).
 2. **Scaffold**: criar o projeto Next.js + Tailwind + shadcn/ui + Drizzle + Auth.js + PWA.
 3. **Modelo de dados**: implementar o schema e migrations.
-4. **Construir o v1** feature a feature: guarda-roupa → adicionar peça → "Veste-me hoje".
+4. **Construir o v1** feature a feature: armário → adicionar peça → "Veste-me hoje".

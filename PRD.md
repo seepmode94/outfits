@@ -7,13 +7,13 @@
 
 ## 1. Resumo (em uma frase)
 
-Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias com a roupa que **já têm** — e, com o tempo, a evoluírem o guarda-roupa para o estilo que **querem ter**. O cérebro é uma IA de visão (Gemini) que olha para as peças e sugere combinações pensadas para a ocasião e o tempo.
+Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias com a roupa que **já têm** — e, com o tempo, a evoluírem o armário para o estilo que **querem ter**. O cérebro é uma IA de visão (Gemini) que olha para as peças e sugere combinações pensadas para a ocasião e o tempo.
 
 ---
 
 ## 2. Problema & público-alvo
 
-- **Quem**: jovens que querem vestir-se melhor mas (a) perdem tempo/indecisão de manhã, e (b) não sabem como evoluir o guarda-roupa para o estilo que admiram.
+- **Quem**: jovens que querem vestir-se melhor mas (a) perdem tempo/indecisão de manhã, e (b) não sabem como evoluir o armário para o estilo que admiram.
 - **Dor diária**: "tenho roupa, mas não sei o que combinar hoje."
 - **Dor de aspiração**: "vejo looks que adoro, mas não sei o que me falta comprar para lá chegar."
 - **Hoje resolvem assim**: vão ao Pinterest buscar ideias soltas, sem ligação ao que realmente possuem.
@@ -22,11 +22,11 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 
 ## 3. Proposta de valor
 
-1. **Veste-me hoje** — sugestão rápida e contextual a partir do guarda-roupa real do utilizador.
+1. **Veste-me hoje** — sugestão rápida e contextual a partir do armário real do utilizador.
 2. **Chega ao look que queres** — a partir de um print de inspiração, a IA diz o que já tens e o que te falta comprar.
 3. **A IA aprende contigo** — guarda os teus gostos e o teu feedback, e afina as sugestões ao longo do tempo.
 
-**O que nos diferencia:** as sugestões partem sempre do **guarda-roupa real** do utilizador (não de catálogos genéricos), e a ponte entre "o que tenho" e "o que quero ser" é explícita e acionável.
+**O que nos diferencia:** as sugestões partem sempre do **armário real** do utilizador (não de catálogos genéricos), e a ponte entre "o que tenho" e "o que quero ser" é explícita e acionável.
 
 ---
 
@@ -34,7 +34,7 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 
 | Camada | O que inclui | Objetivo |
 |---|---|---|
-| **Grátis** | "Veste-me hoje", guarda-roupa, feedback | Gancho de uso diário → cria hábito |
+| **Grátis** | "Veste-me hoje", armário, feedback | Gancho de uso diário → cria hábito |
 | **Pago (subscrição)** | Análise de inspiração + plano de compras, planeamento de viagem/semana | Monetiza a *transformação* de estilo |
 
 > Insight estratégico: o **herói** (utilidade diária) traz e retém pessoas; a **transformação** (análise de inspiração) é o que justifica pagar. São complementares, não concorrentes.
@@ -44,7 +44,7 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 ## 5. Pilares do produto
 
 1. **Utilidade diária primeiro** — o coração da app é "diz-me o que vestir hoje".
-2. **Parte sempre do guarda-roupa real** do utilizador.
+2. **Parte sempre do armário real** do utilizador.
 3. **IA de visão como cérebro** — reconhece peças e raciocina sobre combinações.
 4. **Aprende com o utilizador** — gostos + feedback alimentam cada sugestão.
 5. **Design moderno com motion intencional** — ver secção 9.
@@ -55,11 +55,13 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 ## 6. Modo de operação (o fluxo central)
 
 ### Adicionar uma peça (uma foto = uma peça)
-1. Utilizador tira foto in-app (ou escolhe da galeria).
-2. **Recorte de fundo** no próprio dispositivo/browser → PNG da peça com fundo transparente. *(privado, grátis, on-device)*
-3. **Gemini** analisa a peça → atributos: categoria, cor, padrão, formalidade, estação, material provável.
+1. Utilizador tira foto in-app **ou escolhe da galeria**.
+2. O browser reduz a foto e envia-a ao servidor, que a guarda como **Captura** — ainda não é uma peça.
+3. Em paralelo, sobre a **Foto original**: **recorte de fundo no servidor** → PNG com fundo transparente; e **Gemini** propõe os atributos (categoria, cor, padrão, formalidade, estação, material provável) mais a caixa de enquadramento da peça.
 4. Utilizador **confirma/corrige** os atributos.
-5. Peça guardada (imagem recortada + atributos).
+5. Só então a **Captura** se torna **peça**: guardam-se o Recorte, a Foto original e os atributos.
+
+> Fluxo revisto a 2026-08-11. O passo 2 era "recorte no próprio dispositivo *(privado, grátis, on-device)*" — ver [ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md) e ADR-0002.
 
 ### Sugerir um outfit ("Veste-me hoje")
 1. Utilizador escolhe a **ocasião** (e opcionalmente onde vai).
@@ -77,7 +79,7 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 
 - [ ] **Contas & autenticação** (email + Google).
 - [ ] **Perfil** (género, estilo preferido, tamanhos opcionais, distrito).
-- [ ] **Guarda-roupa**: adicionar peça (foto → recorte → reconhecimento Gemini → confirmação), listar, editar, remover.
+- [ ] **Armário**: adicionar peça (foto → recorte → reconhecimento Gemini → confirmação), listar, editar, remover.
 - [ ] **"Veste-me hoje"**: seleção de ocasião + meteorologia → 1 outfit montado + explicação.
 - [ ] **Feedback** (gostei / não gostei) guardado e usado nas sugestões.
 - [ ] **PWA** instalável, responsiva, mobile-first.
@@ -89,7 +91,7 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 - [ ] **Análise de inspiração**: print de look → "tens X, falta-te Y" + plano de compras.
 - [ ] **Planeamento** de viagem / semana (vários outfits de uma vez).
 - [ ] **Subscrição** (paywall sobre as features de transformação).
-- [ ] **Peças em falta** — visão geral de lacunas no guarda-roupa.
+- [ ] **Peças em falta** — visão geral de lacunas no armário.
 - [ ] *(candidato)* deteção de múltiplas peças numa só foto / outfit completo.
 
 ---
@@ -118,7 +120,7 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 | UI / design system | **Tailwind + shadcn/ui** |
 | Motion | **Motion (Framer Motion)** |
 | IA / visão | **Gemini API** (já em uso pelo utilizador) |
-| Recorte de imagem | **Background removal on-device** (ex: `@imgly/background-removal`) |
+| Recorte de imagem | **No servidor** — ver [ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md); fornecedor por fechar |
 | Meteorologia | API gratuita (ex: **Open-Meteo**, sem chave) |
 | App | **PWA** (instalável, mobile-first) |
 
@@ -148,7 +150,7 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 - **Perfil**: género + estilo preferido + tamanhos (opcional) + distrito (para meteorologia).
 - **Meteorologia**: Open-Meteo (gratuita, sem chave).
 - **Ocasiões**: lista pré-definida (escritório, casual, evento, desporto, encontro…) + texto livre.
-- **Recorte**: on-device (privado, grátis).
+- ~~**Recorte**: on-device (privado, grátis).~~ → **revertido a 2026-08-10: o recorte passou para o servidor.** Ver [ADR-0001](./docs/adr/0001-recorte-de-fundo-no-servidor.md).
 - **Foto**: uma foto = uma peça (v1).
 
 ---
@@ -187,4 +189,4 @@ Uma **web app mobile-first** que ajuda jovens a vestirem-se bem todos os dias co
 1. **Arquitetura** — estrutura do projeto, modelo de dados detalhado, mapa de ecrãs.
 2. **Design** — wireframes mobile-first dos ecrãs do v1 + linguagem de motion.
 3. **Setup** — scaffold Next.js + Tailwind + shadcn/ui + Postgres + auth no Vercel.
-4. **Construir o v1** — feature a feature, começando pelo guarda-roupa e "Veste-me hoje".
+4. **Construir o v1** — feature a feature, começando pelo armário e "Veste-me hoje".

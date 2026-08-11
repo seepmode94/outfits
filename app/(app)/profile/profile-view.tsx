@@ -50,7 +50,7 @@ export function ProfileView({
   initialDistrict: string | null;
   initialGender: Gender | null;
   /** Contagens reais do Armário. `null` quando não há sessão ou a leitura falhou. */
-  counts: { total: number; favourites: number } | null;
+  counts: { total: number; favourites: number; outfits: number } | null;
 }) {
   const [active, setActive] = useState<string[]>(initialStyles ?? []);
   const [district, setDistrict] = useState<string | null>(initialDistrict);
@@ -66,11 +66,12 @@ export function ProfileView({
     if (user) startTransition(() => void updatePreferredStyles(next));
   }
 
-  // "Outfits" fica em "—" de propósito: os outfits ainda não são gerados nem
-  // guardados, e um número inventado ao lado de duas contagens reais mente.
+  // Outfits = os que o utilizador guardou (ou usou), não as sugestões soltas.
+  // Até 2026-08-11 estava em "—" porque nada os gerava; agora o "Veste-me
+  // hoje" grava e o ❤️ marca como guardado.
   const stats: { n: number | string; l: string }[] = [
     { n: counts?.total ?? "—", l: "Peças" },
-    { n: "—", l: "Outfits" },
+    { n: counts?.outfits ?? "—", l: "Outfits" },
     { n: counts?.favourites ?? "—", l: "Favoritos" },
   ];
 

@@ -1,6 +1,6 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
-import { garments, type Garment } from "./schema";
+import { garments, outfits, type Garment } from "./schema";
 
 /**
  * O que o cartão do Armário precisa de cada Peça — deliberadamente menos do que
@@ -52,6 +52,47 @@ export async function getGarment(
     .where(and(eq(garments.userId, userId), eq(garments.id, id)));
 
   return row ?? null;
+}
+
+/**
+ * As Peças completas de um utilizador — tudo o que o `suggestOutfit` precisa
+ * para raciocinar (Atributos inteiros), não só o que o cartão mostra.
+ */
+export async function listWardrobeFull(userId: string): Promise<Garment[]> {
+  return db
+    .select()
+    .from(garments)
+    .where(eq(garments.userId, userId))
+    .orderBy(desc(garments.createdAt));
+}
+
+/**
+ * Quantas Peças servem cada nível de formalidade. Como `formality` é um array
+ * (uma camisa pode ser smart_casual E formal), a mesma Peça conta em mais do
+ * que um nível — é essa a semântica que os chips do "Veste-me hoje" precisam.
+ */
+export async function countByFormality(
+  userId: string,
+): Promise<Record<string, number>> {
+  const level = sql<string>`unnest(${garments.formality})`;
+  const rows = await db
+    .select({ level, n: sql<number>`count(*)::int` })
+    .from(garments)
+    .where(eq(garments.userId, userId))
+    .groupBy(level);
+
+  return Object.fromEntries(rows.map((r) => [r.level, r.n]));
+}
+
+/** Outfits que o utilizador guardou (ou usou) — a contagem honesta do Perfil. */
+export async function countSavedOutfits(userId: string): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(outfits)
+    .where(
+      and(eq(outfits.userId, userId), inArray(outfits.status, ["saved", "worn"])),
+    );
+  return row?.n ?? 0;
 }
 
 /**

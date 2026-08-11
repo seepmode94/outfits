@@ -2,13 +2,14 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { profiles, type Profile } from "@/lib/db/schema";
-import { countWardrobe } from "@/lib/db/wardrobe";
+import { countSavedOutfits, countWardrobe } from "@/lib/db/wardrobe";
 import { ProfileView, type ProfileUser } from "./profile-view";
 
 export default async function ProfilePage() {
   let user: ProfileUser | null = null;
   let savedStyles: string[] | null = null;
-  let counts: { total: number; favourites: number } | null = null;
+  let counts: { total: number; favourites: number; outfits: number } | null =
+    null;
   let district: string | null = null;
   let gender: Profile["gender"] = null;
 
@@ -21,7 +22,7 @@ export default async function ProfilePage() {
         image: session.user.image ?? null,
       };
       if (session.user.id) {
-        const [[profile], wardrobeCounts] = await Promise.all([
+        const [[profile], wardrobeCounts, savedOutfits] = await Promise.all([
           db
             .select({
               preferredStyles: profiles.preferredStyles,
@@ -31,11 +32,12 @@ export default async function ProfilePage() {
             .from(profiles)
             .where(eq(profiles.userId, session.user.id)),
           countWardrobe(session.user.id),
+          countSavedOutfits(session.user.id),
         ]);
         savedStyles = profile?.preferredStyles ?? null;
         district = profile?.district ?? null;
         gender = profile?.gender ?? null;
-        counts = wardrobeCounts;
+        counts = { ...wardrobeCounts, outfits: savedOutfits };
       }
     }
   } catch {

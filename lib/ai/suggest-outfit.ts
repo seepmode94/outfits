@@ -16,7 +16,13 @@ export interface SuggestionGarment {
 
 export interface SuggestionContext {
   garments: SuggestionGarment[];
-  occasion: string;
+  /**
+   * Níveis de formalidade pretendidos (etiquetas legíveis, ex: "Casual").
+   * Substituiu a "ocasião" de texto livre a 2026-08-11: os chips do ecrã
+   * passaram a estar em paridade com o Atributo de formalidade das Peças.
+   */
+  formalities?: string[];
+  occasion?: string;
   weather?: { temperatureC?: number; condition?: string };
   season?: string;
   profile?: { gender?: string | null; preferredStyles?: string[] | null };
@@ -35,7 +41,7 @@ function buildPrompt(ctx: SuggestionContext): string {
 a partir APENAS das peças disponíveis abaixo (usa os respetivos IDs).
 
 Contexto:
-- Ocasião: ${ctx.occasion}
+- Formalidade pretendida: ${ctx.formalities?.length ? ctx.formalities.join(", ") : "qualquer"}${ctx.occasion ? `\n- Ocasião: ${ctx.occasion}` : ""}
 - Tempo: ${weather}
 - Estação: ${ctx.season ?? "—"}
 - Género: ${ctx.profile?.gender ?? "—"}
@@ -45,7 +51,8 @@ Contexto:
 
 Regras:
 - Um outfit completo = (top + bottom) OU (dress), mais footwear; adiciona outerwear se o tempo for frio e accessory se fizer sentido.
-- Combina cores e níveis de formalidade adequados à ocasião e ao tempo.
+- Prefere peças cuja formalidade intersete a pretendida; combina cores e níveis coerentes entre si e com o tempo.
+- Se faltar uma categoria essencial (ex: calçado), monta o melhor outfit possível com o que existe e di-lo na explicação.
 - Usa SÓ peças da lista, pelos seus IDs exatos.
 - A explicação deve ser curta (1-2 frases), calorosa e em português de Portugal.
 

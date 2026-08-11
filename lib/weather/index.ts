@@ -1,9 +1,21 @@
-// Cliente Open-Meteo (gratuito, sem chave). Geocodifica o distrito → coordenadas
-// → tempo atual.
+import { findDistrict } from "@/lib/districts";
+
+/**
+ * Cliente Open-Meteo (gratuito, sem chave).
+ *
+ * Desde 2026-08-11 já não geocodifica: o distrito vem de uma lista fechada com
+ * coordenadas (`lib/districts.ts`), por isso é uma chamada em vez de duas e
+ * "porto"/"Oporto" deixam de ser um problema — nunca chegam aqui.
+ */
 
 export interface Weather {
   temperatureC: number;
+  /** Máxima prevista para hoje. */
+  maxC: number | null;
+  /** Descrição em português, ex: "céu limpo". */
   condition: string;
+  /** Ex: "sem chuva" ou "chuva provável". */
+  rain: string;
 }
 
 // Mapeia códigos WMO (weather_code) para descrição em português.
@@ -22,35 +34,52 @@ function weatherCodeToText(code: number): string {
 }
 
 /**
- * Devolve o tempo atual para um distrito (ex: "Porto", "Lisboa").
- * Retorna null se não conseguir geocodificar ou obter o tempo.
+ * Tempo atual + máxima e probabilidade de chuva de hoje, para um distrito da
+ * lista. Devolve `null` se o distrito não existir ou o Open-Meteo falhar —
+ * o ecrã degrada, não rebenta.
  */
 export async function getWeatherForDistrict(
   district: string,
 ): Promise<Weather | null> {
-  try {
-    const geoRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-        district,
-      )}&count=1&language=pt&format=json`,
-    );
-    const geo = (await geoRes.json()) as {
-      results?: { latitude: number; longitude: number }[];
-    };
-    const loc = geo.results?.[0];
-    if (!loc) return null;
+  const d = findDistrict(district);
+  if (!d) return null;
 
-    const wxRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,weather_code`,
+  try {
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}` +
+        `&current=temperature_2m,weather_code` +
+        `&daily=temperature_2m_max,precipitation_probability_max` +
+        `&forecast_days=1&timezone=auto`,
+      // O tempo de um distrito não muda ao segundo: 30 min de cache partilhada
+      // evita bater no Open-Meteo a cada visita ao ecrã.
+      { next: { revalidate: 1800 } },
     );
-    const wx = (await wxRes.json()) as {
+    const wx = (await res.json()) as {
       current?: { temperature_2m: number; weather_code: number };
+      daily?: {
+        temperature_2m_max?: number[];
+        precipitation_probability_max?: number[];
+      };
     };
     if (!wx.current) return null;
 
+    const rainProb = wx.daily?.precipitation_probability_max?.[0];
+
     return {
       temperatureC: Math.round(wx.current.temperature_2m),
+      maxC:
+        wx.daily?.temperature_2m_max?.[0] != null
+          ? Math.round(wx.daily.temperature_2m_max[0])
+          : null,
       condition: weatherCodeToText(wx.current.weather_code),
+      rain:
+        rainProb == null
+          ? "—"
+          : rainProb >= 50
+            ? "chuva provável"
+            : rainProb >= 20
+              ? "pode chover"
+              : "sem chuva",
     };
   } catch {
     return null;

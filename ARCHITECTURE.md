@@ -159,7 +159,7 @@ outfits/
 // lib/ai/index.ts — a única porta de entrada para a IA
 analyzeGarment(image): Promise<GarmentAttributes>      // foto → atributos
 suggestOutfit(input: SuggestionContext): Promise<OutfitSuggestion>
-// v2: analyzeInspiration(image, wardrobe): Promise<ShoppingGaps>
+analyzeInspiration(image, wardrobe): Promise<InspirationAnalysis> // Inspiração → Paridade com o Armário (implementada 2026-08-11; era o gancho v2)
 ```
 
 - `SuggestionContext` = peças disponíveis + ocasião + meteorologia + estação + perfil/estilo + histórico de feedback.

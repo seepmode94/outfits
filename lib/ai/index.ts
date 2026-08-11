@@ -7,9 +7,13 @@ export {
   type SuggestionContext,
   type SuggestionGarment,
 } from "./suggest-outfit";
+export { analyzeInspiration } from "./analyze-inspiration";
 export {
   garmentAttributesSchema,
   outfitSuggestionSchema,
+  inspirationAnalysisSchema,
   type GarmentAttributes,
   type OutfitSuggestion,
+  type InspirationAnalysis,
+  type InspirationPiece,
 } from "./schemas";

@@ -56,3 +56,41 @@ export const outfitSuggestionSchema = z.object({
 });
 
 export type OutfitSuggestion = z.infer<typeof outfitSuggestionSchema>;
+
+// ─────────────────────────────────────────────────────────────
+// Análise de Inspiração (print de um look → paridade com o Armário)
+// ─────────────────────────────────────────────────────────────
+export const inspirationPieceSchema = z.object({
+  description: z
+    .string()
+    .describe(
+      "A peça vista na imagem, curta e em português, ex: casaco de lã bege oversized",
+    ),
+  category: z
+    .enum(["top", "bottom", "dress", "outerwear", "footwear", "accessory"])
+    .describe("Categoria da peça vista"),
+  primaryColor: z.string().describe("Cor principal da peça vista, em português"),
+  matchGarmentId: z
+    .string()
+    .nullable()
+    .describe(
+      "ID da peça do armário (da lista fornecida) que pode fazer o papel desta, ou null se nenhuma serve",
+    ),
+  matchReason: z
+    .string()
+    .describe(
+      "Uma frase curta: porque é que a peça do armário serve, ou o que falta",
+    ),
+});
+
+export const inspirationAnalysisSchema = z.object({
+  pieces: z
+    .array(inspirationPieceSchema)
+    .describe("Uma entrada por peça de roupa visível no look"),
+  lookSummary: z
+    .string()
+    .describe("Uma frase, calorosa e em português, sobre o estilo do look"),
+});
+
+export type InspirationPiece = z.infer<typeof inspirationPieceSchema>;
+export type InspirationAnalysis = z.infer<typeof inspirationAnalysisSchema>;

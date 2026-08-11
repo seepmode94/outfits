@@ -36,6 +36,14 @@ _Evitar_: guarda-roupa, closet, coleção
 Uma combinação de Peças sugerida para uma ocasião e um contexto (tempo, estação).
 _Evitar_: look, conjunto, sugestão
 
+**Inspiração**:
+Uma imagem de um look que o utilizador quer alcançar — um print, uma fotografia de alguém vestido. Não é uma **Foto original**: não gera **Peças**, é analisada e descartada.
+_Evitar_: print, screenshot, referência
+
+**Paridade**:
+A percentagem das peças de uma **Inspiração** que o **Armário** já cobre — para cada peça vista na imagem, existe ou não uma **Peça** que faça o seu papel.
+_Evitar_: match, score, compatibilidade
+
 ## Relações
 
 - Um **Utilizador** tem um **Armário**; um **Armário** tem muitas **Peças**

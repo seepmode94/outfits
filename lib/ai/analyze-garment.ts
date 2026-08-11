@@ -17,6 +17,7 @@ Regras:
 - Responde em português de Portugal.
 - Sê preciso na categoria e na cor principal.
 - Em "colors" inclui todas as cores visíveis da peça (a principal primeiro), e nunca cores do fundo.
+- Em "formality" escolhe TODOS os níveis em que a peça funciona, não só um: uma camisa branca serve smart_casual e formal; uma t-shirt lisa serve casual e sport.
 - Se não tiveres a certeza do material, dá a tua melhor estimativa.
 - Escolhe as estações em que a peça faz sentido (uma t-shirt leve → verão/primavera; um casaco grosso → outono/inverno).`;
 

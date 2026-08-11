@@ -75,7 +75,7 @@ export async function createGarment(input: {
       primaryColor: a.primaryColor || null,
       colors: a.colors.length > 0 ? a.colors : null,
       pattern: a.pattern || null,
-      formality: a.formality,
+      formality: a.formality.length > 0 ? a.formality : null,
       seasons: a.seasons.length > 0 ? a.seasons : null,
       material: a.material || null,
     })

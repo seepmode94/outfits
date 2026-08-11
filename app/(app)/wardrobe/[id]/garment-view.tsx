@@ -35,7 +35,10 @@ export function GarmentView({ garment }: { garment: Garment }) {
     { k: "Cor", v: garment.primaryColor },
     { k: "Material", v: garment.material },
     { k: "Padrão", v: garment.pattern },
-    { k: "Estilo", v: garment.formality && FORMALITY_LABELS[garment.formality] },
+    {
+      k: "Formalidade",
+      v: (garment.formality ?? []).map((f) => FORMALITY_LABELS[f]).join(", ") || null,
+    },
     { k: "Estação", v: seasons.length > 0 ? seasons.join(", ") : null },
   ].filter((a): a is { k: string; v: string } => Boolean(a.v));
 

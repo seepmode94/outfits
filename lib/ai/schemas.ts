@@ -18,8 +18,10 @@ export const garmentAttributesSchema = z.object({
     .string()
     .describe("Padrão, ex: liso, riscas, xadrez, floral, estampado"),
   formality: z
-    .enum(["casual", "smart_casual", "formal", "sport"])
-    .describe("Nível de formalidade"),
+    .array(z.enum(["casual", "smart_casual", "formal", "sport"]))
+    .describe(
+      "Níveis de formalidade em que a peça funciona — pode ser mais do que um (uma camisa branca serve smart_casual e formal)",
+    ),
   seasons: z
     .array(z.enum(["spring", "summer", "autumn", "winter"]))
     .describe("Estações do ano em que a peça é adequada"),

@@ -101,7 +101,7 @@ export async function POST(request: Request) {
               primaryColor: "",
               colors: [],
               pattern: "",
-              formality: "casual",
+              formality: [],
               seasons: [],
               material: "",
             },

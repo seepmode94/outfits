@@ -9,7 +9,7 @@ export interface SuggestionGarment {
   primaryColor?: string | null;
   colors?: string[] | null;
   pattern?: string | null;
-  formality?: string | null;
+  formality?: string[] | null;
   seasons?: string[] | null;
   material?: string | null;
 }

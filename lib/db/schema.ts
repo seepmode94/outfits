@@ -145,7 +145,9 @@ export const garments = pgTable("garment", {
   primaryColor: text("primary_color"),
   colors: text("colors").array(),
   pattern: text("pattern"),
-  formality: formalityEnum("formality"),
+  // Array e não valor único: uma camisa branca serve smart_casual E formal, e
+  // uma t-shirt lisa serve casual E sport. Segue o mesmo padrão do `seasons`.
+  formality: formalityEnum("formality").array(),
   seasons: seasonEnum("seasons").array(),
   material: text("material"),
   notes: text("notes"),

@@ -7,6 +7,7 @@ import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   FORMALITY_LABELS,
+  FORMALITY_ORDER,
   SEASON_LABELS,
   SEASON_ORDER,
   type GarmentCategory,
@@ -32,6 +33,15 @@ export function AttributesForm({ capture }: { capture: CaptureResult }) {
     key: K,
     value: GarmentAttributes[K],
   ) => setA((prev) => ({ ...prev, [key]: value }));
+
+  function toggleFormality(f: Formality) {
+    set(
+      "formality",
+      a.formality.includes(f)
+        ? a.formality.filter((x) => x !== f)
+        : [...a.formality, f],
+    );
+  }
 
   function toggleSeason(s: Season) {
     set(
@@ -146,18 +156,30 @@ export function AttributesForm({ capture }: { capture: CaptureResult }) {
         </div>
 
         <div>
-          <span className={label}>Estilo</span>
-          <select
-            value={a.formality}
-            onChange={(e) => set("formality", e.target.value as Formality)}
-            className={field}
-          >
-            {(Object.keys(FORMALITY_LABELS) as Formality[]).map((f) => (
-              <option key={f} value={f}>
-                {FORMALITY_LABELS[f]}
-              </option>
-            ))}
-          </select>
+          {/* "Formalidade" e não "Estilo": o glossário chama-lhe assim, e
+              "estilo" já significa outra coisa na app — o Streetwear/Vintage do
+              perfil, que é o gosto do utilizador e não uma propriedade da peça. */}
+          <span className={label}>Formalidade</span>
+          <div className="grid grid-cols-2 gap-2">
+            {FORMALITY_ORDER.map((f) => {
+              const on = a.formality.includes(f);
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => toggleFormality(f)}
+                  aria-pressed={on}
+                  className={`rounded-full border px-3 py-2.5 text-[11px] font-bold transition-colors ${
+                    on
+                      ? "border-ink bg-ink text-cream"
+                      : "border-ink/10 bg-white text-ink-soft"
+                  }`}
+                >
+                  {FORMALITY_LABELS[f]}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>

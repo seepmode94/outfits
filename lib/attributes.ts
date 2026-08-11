@@ -7,7 +7,7 @@ import type { Garment } from "@/lib/db/schema";
  */
 
 export type GarmentCategory = NonNullable<Garment["category"]>;
-export type Formality = NonNullable<Garment["formality"]>;
+export type Formality = NonNullable<Garment["formality"]>[number];
 export type Season = NonNullable<Garment["seasons"]>[number];
 
 /**
@@ -43,6 +43,13 @@ export const FORMALITY_LABELS: Record<Formality, string> = {
   formal: "Formal",
   sport: "Desporto",
 };
+
+export const FORMALITY_ORDER: Formality[] = [
+  "casual",
+  "smart_casual",
+  "formal",
+  "sport",
+];
 
 export const SEASON_LABELS: Record<Season, string> = {
   spring: "primavera",

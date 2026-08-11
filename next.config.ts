@@ -21,8 +21,13 @@ function dlopenLibs(): string[] {
   const found: string[] = [];
 
   const collect = (dir: string, match: RegExp) => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const abs = path.join(dir, entry.name);
+    // realpathSync em CADA ficheiro, não só na pasta de entrada. O pnpm
+    // encadeia symlinks: `sharp@X/node_modules/@img/sharp-libvips-linux-x64` é
+    // ele próprio um link para outra entrada do store. Um caminho que atravesse
+    // um link faz a Vercel rejeitar o pacote inteiro com "invalid deployment
+    // package ... files in symlinked directories".
+    for (const entry of readdirSync(realpathSync(dir), { withFileTypes: true })) {
+      const abs = realpathSync(path.join(realpathSync(dir), entry.name));
       if (entry.isDirectory()) collect(abs, match);
       else if (match.test(entry.name)) {
         found.push("./" + path.relative(__dirname, abs));

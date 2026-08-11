@@ -5,7 +5,14 @@ import { useState, useTransition } from "react";
 import { motion } from "motion/react";
 import { ChevronRight, LogIn, LogOut } from "lucide-react";
 import { STYLE_OPTIONS } from "@/lib/styles";
-import { signOutAction, updatePreferredStyles } from "./actions";
+import { DISTRICT_NAMES } from "@/lib/districts";
+import { GENDER_LABELS, GENDER_ORDER, type Gender } from "@/lib/genders";
+import {
+  signOutAction,
+  updateDistrict,
+  updateGender,
+  updatePreferredStyles,
+} from "./actions";
 
 export interface ProfileUser {
   name: string | null;
@@ -15,7 +22,6 @@ export interface ProfileUser {
 
 const ROWS = [
   { emoji: "🧩", label: "O que te falta", href: "/gaps" },
-  { emoji: "🌤️", label: "Localização & tempo", href: null },
   { emoji: "🔔", label: "Notificações do outfit", href: null },
   { emoji: "⭐", label: "Passar para Premium", href: null },
 ];
@@ -36,13 +42,19 @@ export function ProfileView({
   user,
   initialStyles,
   counts,
+  initialDistrict,
+  initialGender,
 }: {
   user: ProfileUser | null;
   initialStyles: string[] | null;
+  initialDistrict: string | null;
+  initialGender: Gender | null;
   /** Contagens reais do Armário. `null` quando não há sessão ou a leitura falhou. */
   counts: { total: number; favourites: number } | null;
 }) {
   const [active, setActive] = useState<string[]>(initialStyles ?? []);
+  const [district, setDistrict] = useState<string | null>(initialDistrict);
+  const [gender, setGender] = useState<Gender | null>(initialGender);
   const [, startTransition] = useTransition();
 
   function toggle(tag: string) {
@@ -132,6 +144,63 @@ export function ProfileView({
                 }`}
               >
                 {tag}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* distrito e género — o que o "Veste-me hoje" precisa */}
+      <div className="mx-5 mt-5">
+        <p className="mb-2.5 text-xs font-extrabold tracking-wider text-ink-soft uppercase">
+          Distrito <span className="normal-case">(para a meteorologia)</span>
+        </p>
+        <select
+          value={district ?? ""}
+          onChange={(e) => {
+            const next = e.target.value || null;
+            setDistrict(next);
+            if (user) startTransition(() => void updateDistrict(next));
+          }}
+          className="w-full rounded-2xl bg-white px-4 py-3.5 text-[13.5px] font-semibold shadow-soft outline-none"
+        >
+          <option value="">Escolhe o distrito…</option>
+          {DISTRICT_NAMES.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        {!district && (
+          <p className="mt-2 text-[11px] text-ink-soft">
+            Sem distrito não há previsão do tempo, e o outfit de hoje fica sem
+            saber se está frio.
+          </p>
+        )}
+      </div>
+
+      <div className="mx-5 mt-4">
+        <p className="mb-2.5 text-xs font-extrabold tracking-wider text-ink-soft uppercase">
+          Como me identifico
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {GENDER_ORDER.map((g) => {
+            const on = gender === g;
+            return (
+              <button
+                key={g}
+                onClick={() => {
+                  const next = on ? null : g;
+                  setGender(next);
+                  if (user) startTransition(() => void updateGender(next));
+                }}
+                className={`rounded-full border px-3.5 py-2 text-xs font-bold shadow-soft transition-colors ${
+                  on
+                    ? "border-coral bg-coral text-white"
+                    : "border-ink/10 bg-white text-ink"
+                }`}
+              >
+                {GENDER_LABELS[g]}
               </button>
             );
           })}

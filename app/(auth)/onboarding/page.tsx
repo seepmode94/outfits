@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { STYLE_OPTIONS } from "@/lib/styles";
+import { DISTRICT_NAMES } from "@/lib/districts";
+import { GENDER_LABELS, GENDER_ORDER } from "@/lib/genders";
+import { saveOnboarding } from "./actions";
 
-const GENDERS = ["Mulher", "Homem", "Não-binário", "Prefiro não dizer"];
+// As etiquetas vêm do mapa em lib/genders.ts: eram uma lista solta em
+// português, que nunca poderia ser gravada no enum da base de dados.
+const GENDERS = GENDER_ORDER.map((g) => GENDER_LABELS[g]);
 
 function Chip({
   label,
@@ -36,6 +41,7 @@ export default function OnboardingPage() {
   const [gender, setGender] = useState<string | null>(null);
   const [styles, setStyles] = useState<string[]>([]);
   const [district, setDistrict] = useState("");
+  const [pending, startTransition] = useTransition();
 
   function toggleStyle(s: string) {
     setStyles((prev) =>
@@ -79,12 +85,20 @@ export default function OnboardingPage() {
     {
       title: "Qual é o teu distrito? (para o tempo)",
       body: (
-        <input
+        // Lista fechada e não texto livre: a meteorologia precisa de
+        // coordenadas, e "porto"/"Oporto"/"Prto" não se resolvem sozinhos.
+        <select
           value={district}
           onChange={(e) => setDistrict(e.target.value)}
-          placeholder="ex: Porto"
-          className="h-13 w-full rounded-full bg-white px-5 text-base shadow-soft outline-none placeholder:text-ink-soft/60 focus:ring-3 focus:ring-coral/40"
-        />
+          className="h-13 w-full rounded-full bg-white px-5 text-base shadow-soft outline-none focus:ring-3 focus:ring-coral/40"
+        >
+          <option value="">Escolhe o distrito…</option>
+          {DISTRICT_NAMES.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
       ),
     },
   ];
@@ -114,11 +128,19 @@ export default function OnboardingPage() {
       </div>
 
       <button
-        onClick={() => router.push("/today")}
-        className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-coral text-base font-extrabold text-white shadow-[0_12px_24px_-6px_rgba(245,59,30,0.6)] transition-transform active:scale-[0.98]"
+        onClick={() =>
+          startTransition(async () => {
+            // Grava ANTES de navegar. Até aqui o botão só fazia push e tudo o
+            // que o utilizador escolhera era descartado com o estado.
+            await saveOnboarding({ genderLabel: gender, styles, district });
+            router.push("/today");
+          })
+        }
+        disabled={pending}
+        className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-coral text-base font-extrabold text-white shadow-[0_12px_24px_-6px_rgba(245,59,30,0.6)] transition-transform active:scale-[0.98] disabled:opacity-60"
       >
-        Concluir
-        <ArrowRight className="h-5 w-5" />
+        {pending ? "A guardar…" : "Concluir"}
+        {!pending && <ArrowRight className="h-5 w-5" />}
       </button>
     </main>
   );

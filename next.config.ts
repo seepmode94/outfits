@@ -1,30 +1,65 @@
-import { realpathSync } from "node:fs";
+import { readdirSync, realpathSync } from "node:fs";
 import path from "node:path";
 import type { NextConfig } from "next";
 
 /**
- * Caminho **canónico** do `libonnxruntime.so.1`, relativo à raiz do projeto.
+ * Bibliotecas nativas que os módulos `.node` carregam por **dlopen**.
  *
- * Porque não um glob: `node_modules/onnxruntime-node` é um symlink para o store
- * do pnpm, e um padrão com `**` faz o resolver emitir duas entradas para o
- * mesmo ficheiro (a do symlink e a real). No deploy as duas escrevem no mesmo
- * destino e a Vercel morre com `EEXIST`. Resolver o symlink aqui dá uma entrada
- * só, sem fixar a versão no caminho.
+ * O `outputFileTracing` faz análise estática: segue `require`, e por isso apanha
+ * os `.node`, mas **não** apanha os `.so` que esses `.node` abrem em runtime.
+ * Sem isto a função arranca e morre com "cannot open shared object file" — foi
+ * o que aconteceu com o onnxruntime e, no deploy seguinte, com o libvips.
+ *
+ * Resolve-se sempre o **caminho real** (`realpathSync`) e nunca um glob com
+ * `**`: o pnpm liga `node_modules/<pkg>` ao seu store, e um glob emite duas
+ * entradas para o mesmo ficheiro (a do symlink e a real). No deploy as duas
+ * escrevem no mesmo destino e a Vercel morre com `EEXIST`. E não se fixam
+ * versões: os nomes das pastas do store incluem hashes de peer deps
+ * (`sharp@0.35.3_@types+node@20.19.43`).
  */
-function onnxRuntimeLib(): string[] {
+function dlopenLibs(): string[] {
+  const found: string[] = [];
+
+  const collect = (dir: string, match: RegExp) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) collect(abs, match);
+      else if (match.test(entry.name)) {
+        found.push("./" + path.relative(__dirname, abs));
+      }
+    }
+  };
+
+  const tryCollect = (dir: string, match: RegExp) => {
+    try {
+      collect(dir, match);
+    } catch {
+      // Plataforma sem estes binários (ex.: instalar em macOS): não há nada a
+      // incluir e o build continua, em vez de rebentar aqui.
+    }
+  };
+
+  // onnxruntime-node → libonnxruntime.so.1 (38 MB)
+  tryCollect(
+    realpathSync(
+      path.join(__dirname, "node_modules/onnxruntime-node/bin/napi-v6/linux/x64"),
+    ),
+    /^libonnxruntime\.so/,
+  );
+
+  // sharp → @img/sharp-libvips-linux-x64/lib/libvips-cpp.so (18 MB). Vive ao
+  // lado do sharp dentro do store do pnpm, daí resolver-se pelo symlink.
   try {
-    const real = realpathSync(
-      path.join(
-        __dirname,
-        "node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime.so.1",
-      ),
+    const sharpReal = realpathSync(path.join(__dirname, "node_modules/sharp"));
+    tryCollect(
+      path.join(path.dirname(sharpReal), "@img", "sharp-libvips-linux-x64", "lib"),
+      /\.so(\.|$)/,
     );
-    return ["./" + path.relative(__dirname, real)];
   } catch {
-    // Sem o binário de Linux (ex.: instalação noutra plataforma) não há nada a
-    // incluir; o build continua e só falharia em runtime nessa plataforma.
-    return [];
+    // idem
   }
+
+  return found;
 }
 
 const nextConfig: NextConfig = {
@@ -52,9 +87,9 @@ const nextConfig: NextConfig = {
       // passarem a arm64, o erro é exactamente o mesmo e a correção é
       // acrescentar linux/arm64 aqui.
       //
-      // Só o `.so`: o `onnxruntime_binding.node` já vem pelo tracing natural
-      // (é um require), e incluí-lo outra vez duplicava-o.
-      ...onnxRuntimeLib(),
+      // Só os `.so`: os `.node` já vêm pelo tracing natural (são requires), e
+      // incluí-los outra vez duplicava-os.
+      ...dlopenLibs(),
     ],
   },
 

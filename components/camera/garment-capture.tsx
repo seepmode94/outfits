@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Camera, RefreshCw } from "lucide-react";
+import type { CaptureResult } from "@/lib/capture";
 
 type Stage = "idle" | "preparing" | "cutting" | "done";
 
@@ -36,9 +37,11 @@ async function shrink(file: File): Promise<Blob> {
 }
 
 export function GarmentCapture({
-  onCutout,
+  onCaptured,
+  onReset,
 }: {
-  onCutout?: (dataUrl: string) => void;
+  onCaptured?: (result: CaptureResult) => void;
+  onReset?: () => void;
 }) {
   const [stage, setStage] = useState<Stage>("idle");
   const [originalUrl, setOriginalUrl] = useState<string | null>(null);
@@ -70,10 +73,10 @@ export function GarmentCapture({
         throw new Error(reason ?? "O recorte falhou.");
       }
 
-      const url = URL.createObjectURL(await res.blob());
-      setCutoutUrl(url);
+      const result = (await res.json()) as CaptureResult;
+      setCutoutUrl(result.recorteUrl);
       setStage("done");
-      onCutout?.(url);
+      onCaptured?.(result);
     } catch (e) {
       console.error(e);
       setError(e instanceof Error ? e.message : "O recorte falhou.");
@@ -86,6 +89,7 @@ export function GarmentCapture({
     setOriginalUrl(null);
     setCutoutUrl(null);
     setError(null);
+    onReset?.();
   }
 
   const busy = stage === "preparing" || stage === "cutting";
@@ -162,9 +166,14 @@ export function GarmentCapture({
                 transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
               />
               {/* O recorte agora é do servidor e não reporta progresso, por isso
-                  o estado diz-se por etapas em vez de uma percentagem falsa. */}
+                  o estado diz-se por etapas em vez de uma percentagem falsa. O
+                  recorte e o reconhecimento correm em paralelo (ADR-0002), daí
+                  a etapa única: medido, ~8s, dominados pela IA. */}
               <span className="absolute top-4 left-4 rounded-full bg-lime px-2.5 py-1 text-[10px] font-extrabold text-ink">
-                ● {stage === "preparing" ? "A preparar a foto…" : "A recortar…"}
+                ●{" "}
+                {stage === "preparing"
+                  ? "A preparar a foto…"
+                  : "A recortar e a reconhecer…"}
               </span>
             </motion.div>
           )}

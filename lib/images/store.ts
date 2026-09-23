@@ -1,4 +1,4 @@
-import { put } from "@vercel/blob";
+import { del, put } from "@vercel/blob";
 
 /**
  * Guarda as imagens de uma Peça no Vercel Blob.
@@ -69,6 +69,28 @@ export async function storeRecorte(
     addRandomSuffix: true,
   });
   return url;
+}
+
+/**
+ * Apaga as imagens de uma Peça: o **Recorte** (store público, token do CLI) e a
+ * **Foto original** (store privado, token próprio). Corre *depois* de a linha
+ * sair da base de dados e não desfaz nada se falhar: um blob órfão custa
+ * cêntimos e ninguém o vê; uma Peça sem imagem seria um erro visível na grelha.
+ * Sem `BLOB_PRIVATE_TOKEN` a Foto original fica órfã — não há como a apagar.
+ */
+export async function deleteGarmentImages(
+  imageUrl: string,
+  originalImageUrl: string | null,
+): Promise<void> {
+  const jobs: Promise<void>[] = [del(imageUrl)];
+  if (originalImageUrl && PRIVATE_TOKEN) {
+    jobs.push(del(originalImageUrl, { token: PRIVATE_TOKEN }));
+  }
+  for (const r of await Promise.allSettled(jobs)) {
+    if (r.status === "rejected") {
+      console.error("[store] blob não apagado", r.reason);
+    }
+  }
 }
 
 /**

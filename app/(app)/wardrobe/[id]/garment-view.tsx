@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { motion } from "motion/react";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { ChevronLeft, Pencil, Trash2 } from "lucide-react";
 import {
   AttributesFields,
   attributesFromGarment,
@@ -17,7 +17,7 @@ import {
 } from "@/lib/attributes";
 import type { GarmentAttributes } from "@/lib/ai/schemas";
 import type { Garment } from "@/lib/db/schema";
-import { setFavourite, updateGarment } from "./actions";
+import { deleteGarment, setFavourite, updateGarment } from "./actions";
 
 export function GarmentView({ garment }: { garment: Garment }) {
   const router = useRouter();
@@ -29,6 +29,8 @@ export function GarmentView({ garment }: { garment: Garment }) {
   const [draft, setDraft] = useState<GarmentAttributes>(() =>
     attributesFromGarment(garment),
   );
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   function startEditing() {
     // Recomeça sempre do que está guardado, para uma edição abandonada não
@@ -49,6 +51,20 @@ export function GarmentView({ garment }: { garment: Garment }) {
     } else {
       setError(res.error);
     }
+  }
+
+  async function confirmDelete() {
+    setDeleting(true);
+    setError(null);
+    const res = await deleteGarment(garment.id);
+    if (res.ok) {
+      // replace, não push: a Peça já não existe e "voltar" daria 404.
+      router.replace("/wardrobe");
+      return;
+    }
+    setDeleting(false);
+    setConfirmingDelete(false);
+    setError(res.error);
   }
 
   function toggleFav() {
@@ -183,6 +199,55 @@ export function GarmentView({ garment }: { garment: Garment }) {
               <Pencil className="h-4 w-4" />
               Editar detalhes
             </button>
+          </div>
+
+          {/* Eliminar: confirmação inline, no mesmo sítio, em vez de um
+              diálogo do browser — a pergunta e a resposta ficam no ecrã. */}
+          <div className="px-5 pt-3">
+            {confirmingDelete ? (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-[22px] bg-coral/10 p-4 text-center"
+              >
+                <p className="text-sm font-semibold text-coral-deep">
+                  Eliminar esta peça do armário? Sai também dos outfits onde
+                  entrou.
+                </p>
+                <div className="mt-3 flex gap-3">
+                  <button
+                    onClick={() => setConfirmingDelete(false)}
+                    disabled={deleting}
+                    className="flex-1 rounded-full bg-white py-3 text-[13px] font-extrabold text-ink transition-transform active:scale-[0.98] disabled:opacity-60"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={deleting}
+                    className="flex-1 rounded-full bg-coral-deep py-3 text-[13px] font-extrabold text-white transition-transform active:scale-[0.98] disabled:opacity-60"
+                  >
+                    {deleting ? "A eliminar…" : "Eliminar"}
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <button
+                onClick={() => {
+                  setError(null);
+                  setConfirmingDelete(true);
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-[13px] font-extrabold text-coral-deep transition-transform active:scale-[0.98]"
+              >
+                <Trash2 className="h-4 w-4" />
+                Eliminar peça
+              </button>
+            )}
+            {error && !confirmingDelete && (
+              <p className="pt-3 text-center text-sm text-coral-deep">
+                {error}
+              </p>
+            )}
           </div>
         </>
       )}

@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { garmentAttributesSchema } from "@/lib/ai/schemas";
 import { db } from "@/lib/db";
 import { garments } from "@/lib/db/schema";
+import { deleteGarmentImages } from "@/lib/images/store";
 
 /**
  * Marca ou desmarca uma Peça como Favorito.
@@ -71,6 +72,45 @@ export async function updateGarment(
 
   revalidatePath("/wardrobe");
   revalidatePath(`/wardrobe/${garmentId}`);
+
+  return { ok: true };
+}
+
+export type DeleteGarmentResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Elimina uma Peça do Armário.
+ *
+ * A base de dados vai primeiro e as imagens depois, de propósito: se o Blob
+ * falhar fica um ficheiro órfão que ninguém vê; ao contrário, uma falha na base
+ * de dados deixava uma Peça com imagem partida na grelha. Os `outfit_garments`
+ * e o `feedback` da Peça caem em cascata (schema): um Outfit guardado que a
+ * usava perde esse item, e é isso que se quer — a Peça deixou de existir.
+ */
+export async function deleteGarment(
+  garmentId: string,
+): Promise<DeleteGarmentResult> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return { ok: false, error: "Precisas de sessão." };
+
+  // O userId no where impede apagar a Peça de outra pessoa com um uuid adivinhado.
+  const [removed] = await db
+    .delete(garments)
+    .where(and(eq(garments.userId, userId), eq(garments.id, garmentId)))
+    .returning({
+      imageUrl: garments.imageUrl,
+      originalImageUrl: garments.originalImageUrl,
+    });
+
+  if (!removed) return { ok: false, error: "Peça não encontrada." };
+
+  await deleteGarmentImages(removed.imageUrl, removed.originalImageUrl);
+
+  // Grelha e contagens do Perfil; o Hoje pode mostrar um Outfit que a usava.
+  revalidatePath("/wardrobe");
+  revalidatePath("/profile");
+  revalidatePath("/today");
 
   return { ok: true };
 }

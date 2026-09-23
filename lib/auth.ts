@@ -5,11 +5,19 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db";
 import { users, accounts, sessions, verificationTokens } from "@/lib/db/schema";
 
-// Sem domínio verificado no Resend, o remetente tem de ser onboarding@resend.dev
-// (que só entrega ao dono da conta). Definir AUTH_EMAIL_FROM quando o domínio
-// próprio estiver verificado.
+// O remetente segue esta ordem de preferência:
+//  1. AUTH_EMAIL_FROM — endereço completo, tem prioridade sobre tudo
+//  2. RESEND_EMAIL_DOMAIN — domínio verificado no Resend (definido pela
+//     integração); daqui deriva-se no-reply@<domínio>
+//  3. onboarding@resend.dev — remetente partilhado do Resend, que só entrega
+//     ao dono da conta. É por isto que o magic link não chega a mais ninguém
+//     enquanto não houver domínio verificado.
+const RESEND_DOMAIN = process.env.RESEND_EMAIL_DOMAIN;
 const EMAIL_FROM =
-  process.env.AUTH_EMAIL_FROM || "Outfits <onboarding@resend.dev>";
+  process.env.AUTH_EMAIL_FROM ||
+  (RESEND_DOMAIN
+    ? `Outfits <no-reply@${RESEND_DOMAIN}>`
+    : "Outfits <onboarding@resend.dev>");
 
 // Auth.js v5 — lê AUTH_SECRET e AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET do ambiente.
 export const { handlers, auth, signIn, signOut } = NextAuth({

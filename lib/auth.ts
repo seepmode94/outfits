@@ -19,6 +19,11 @@ const EMAIL_FROM =
     ? `Outfits <no-reply@${RESEND_DOMAIN}>`
     : "Outfits <onboarding@resend.dev>");
 
+// Magic link só com AUTH_EMAIL_LOGIN=1: o Resend exige um domínio verificado e
+// sem ele o pedido dá erro. Desligado, o formulário desaparece do /sign-in e
+// /api/auth/signin/resend responde "provider not found" sem chamar o Resend.
+export const EMAIL_LOGIN_ENABLED = process.env.AUTH_EMAIL_LOGIN === "1";
+
 // Auth.js v5 — lê AUTH_SECRET e AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET do ambiente.
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -60,7 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Resend error: " + JSON.stringify(await res.json()));
       },
     }),
-  ],
+  ].filter((provider) => EMAIL_LOGIN_ENABLED || provider.id !== "resend"),
   pages: {
     signIn: "/sign-in",
     verifyRequest: "/check-email",

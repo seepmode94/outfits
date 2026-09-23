@@ -2,7 +2,7 @@
 
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
-import { signIn } from "@/lib/auth";
+import { EMAIL_LOGIN_ENABLED, signIn } from "@/lib/auth";
 
 // Falhas conhecidas do Auth.js voltam ao sign-in com uma mensagem amigável;
 // o redirect de sucesso (NEXT_REDIRECT) e erros inesperados seguem o curso.
@@ -25,6 +25,8 @@ export async function signInWithGoogle() {
 }
 
 export async function signInWithEmail(formData: FormData) {
+  // O formulário não é renderizado sem a flag; isto só apanha pedidos forjados.
+  if (!EMAIL_LOGIN_ENABLED) return;
   const email = String(formData.get("email") ?? "").trim();
   if (!email) return;
   await signInOrExplain("resend", { email, redirectTo: "/today" });

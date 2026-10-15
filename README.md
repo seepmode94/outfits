@@ -23,6 +23,14 @@ You take a photo of a piece of clothing, the server cuts out the background and 
 - **What you're missing.** Upload an inspiration image of a look you like and the app tells you which pieces you already have and which ones you would need to buy.
 - **Profile and onboarding.** Gender, district and style preferences saved on first login.
 
+## Adding a piece, recorded on the live demo
+
+<p align="center">
+  <img src="docs/screenshots/add-piece.gif" width="300" alt="Adding a denim vest: the photo is uploaded, the background is removed, Gemini proposes the attributes and the piece lands in the wardrobe">
+</p>
+
+A real photo of a denim vest on a hanger. The cutout took 2.1 s and the recognition 5.1 s, and you can see the hanger was only partly removed. There is also an [MP4 version](docs/screenshots/add-piece.mp4).
+
 ## How a photo becomes a piece
 
 ```mermaid

@@ -6,6 +6,15 @@ You take a photo of a piece of clothing, the server cuts out the background and 
 
 **Live demo:** https://outfits-gamma.vercel.app
 
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/today.png" width="200" alt="Dress me today: an outfit suggestion built from the wardrobe, with the weather and the reasoning"><br><sub>Dress me today</sub></td>
+    <td align="center"><img src="docs/screenshots/wardrobe.png" width="200" alt="Wardrobe grid with background-removed pieces"><br><sub>Wardrobe</sub></td>
+    <td align="center"><img src="docs/screenshots/piece.png" width="200" alt="Piece detail with AI-proposed attributes"><br><sub>Piece and its attributes</sub></td>
+    <td align="center"><img src="docs/screenshots/gaps.png" width="200" alt="What you're missing: compare an inspiration look with the wardrobe"><br><sub>What you're missing</sub></td>
+  </tr>
+</table>
+
 ## What it does
 
 - **Add a piece from a photo.** The photo is resized in the browser and stored as a *Capture*. On the server, the background is removed and Gemini proposes the attributes (category, colours, pattern, formality, seasons, material). You confirm or edit them and the Capture becomes a piece in your wardrobe.
@@ -13,6 +22,18 @@ You take a photo of a piece of clothing, the server cuts out the background and 
 - **Dress me today.** Outfit suggestions built only from pieces you own, using live weather from Open-Meteo for your district and the formality you need. Your feedback on each suggestion feeds the next ones.
 - **What you're missing.** Upload an inspiration image of a look you like and the app tells you which pieces you already have and which ones you would need to buy.
 - **Profile and onboarding.** Gender, district and style preferences saved on first login.
+
+## How a photo becomes a piece
+
+```mermaid
+flowchart LR
+    A[Photo in the browser] -->|resized| B[(Capture<br/>original photo in Blob)]
+    B --> C[Background removal<br/>u2netp on the server]
+    B --> D[Gemini<br/>proposes attributes]
+    C --> E[User confirms<br/>or edits]
+    D --> E
+    E --> F[(Piece<br/>in the wardrobe)]
+```
 
 ## The interesting part: background removal in a serverless function
 
@@ -65,7 +86,8 @@ Then open http://localhost:3000.
 
 This is a personal project and it is still evolving.
 
-- Google sign-in works locally. On the live demo it still needs the production redirect URI.
+- The screenshots are from the live demo with my own wardrobe.
+- Generating an outfit sometimes takes long enough for the AI call to time out. Trying again usually works, and a better loading and retry flow is on the list.
 - The cutout was measured on product-style photos. Harder phone photos in messy rooms have not been tested yet.
 
 ## Author
